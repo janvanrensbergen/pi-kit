@@ -32,6 +32,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # QEMU registers binfmt handlers so Buildx can build non-amd64
+      # platforms (linux/arm64) on the amd64 runner via emulation.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -60,22 +65,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64
+          # Multi-arch: the base image (docker/sandbox-templates:shell-docker)
+          # ships linux/amd64 and linux/arm64, and pi-kit is architecture-
+          # neutral (JS + npm), so one buildx push emits a merged index.
+          platforms: linux/amd64,linux/arm64
           # PI_VERSION is pinned in the Dockerfile (ARG PI_VERSION=0.84.3).
           # To publish a different version bump the ARG default or set build-args.
           build-args: |
             PI_VERSION=0.84.3
-
-      # Make the GHCR package public so the sandbox can pull it without a token.
-      # build-push-action publishes packages as private by default; set
-      # visibility once here (re-runs are idempotent). Requires a token with
-      # `packages: write` on the repo — the default GITHUB_TOKEN satisfies this.
-      - name: Make package public
-        shell: bash
-        run: |
-          curl -fsS \
-            -X PATCH \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/user/packages/container/pi-kit" \
-            -d '{"visibility":"public"}'
