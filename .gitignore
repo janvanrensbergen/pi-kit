@@ -9,6 +9,6 @@ models-store.json
 # IDE noise
 .idea/
 
-# Copy artifacts (install.sh copies categories; keep the kit pristine)
+# Local npm / OS noise (keep the kit pristine)
 node_modules/
 .DS_Store
