@@ -1,0 +1,13 @@
+{
+  "name": "jan-pi-kit",
+  "version": "0.1.0",
+  "description": "Personal pi config kit: skills, themes, prompts, extensions, and portable preferences.",
+  "keywords": ["pi-package"],
+  "license": "MIT",
+  "pi": {
+    "skills": ["./skills"],
+    "themes": ["./themes"],
+    "prompts": ["./prompts"],
+    "extensions": ["./extensions"]
+  }
+}

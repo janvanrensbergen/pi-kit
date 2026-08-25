@@ -1,0 +1,14 @@
+# Never ship credentials or per-sandbox state
+auth.json
+sessions/
+models-store.json
+
+# Local project-level pi config (live per-sandbox state, not part of the kit)
+/.pi/
+
+# IDE noise
+.idea/
+
+# Copy artifacts (install.sh copies categories; keep the kit pristine)
+node_modules/
+.DS_Store
