@@ -1,0 +1,48 @@
+schemaVersion: "1"
+kind: agent
+name: pi-kit
+displayName: my Pi
+description: "Pi coding agent (pi pre-installed)"
+
+agent:
+  image: "ghcr.io/janvanrensbergen/pi-kit:latest"
+  aiFilename: AGENTS.md
+  entrypoint:
+    run: [pi, --approve]
+
+network:
+  allowedDomains:
+    - "pi.dev"
+    - "github.com"
+    - "api.github.com"
+    - "*.githubcopilot.com"
+    - "*.individual.githubcopilot.com"
+    - "*.business.githubcopilot.com"
+    - "copilot-proxy.githubusercontent.com"
+    - "*.githubusercontent.com"
+    - "registry.npmjs.org"
+    - "localhost:64342"
+    - "start.ktor.io"
+    - "services.gradle.org"
+    - "plugins.gradle.org"
+    - "repo.maven.apache.org"
+    - "repo1.maven.org"
+    - "openrouter.ai"
+  serviceDomains:
+    "openrouter.ai": openrouter
+  serviceAuth:
+    openrouter:
+      headerName: Authorization
+      valueFormat: "Bearer %s"
+
+credentials:
+  sources:
+    openrouter:
+      env:
+        - OPENROUTER_API_KEY
+
+environment:
+  variables:
+    NO_PROXY: "github.com,api.github.com,.githubcopilot.com,.individual.githubcopilot.com,.business.githubcopilot.com,.githubusercontent.com"
+  proxyManaged:
+    - OPENROUTER_API_KEY
