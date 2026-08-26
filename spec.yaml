@@ -1,6 +1,6 @@
 schemaVersion: "1"
 kind: agent
-name: pi-kit
+name: my-pi
 displayName: my Pi
 description: "Pi coding agent (pi pre-installed)"
 

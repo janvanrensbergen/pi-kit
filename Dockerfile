@@ -48,8 +48,15 @@ RUN HOME="$(getent passwd "$(id -un)" | cut -d: -f6)" \
 FROM docker/sandbox-templates:shell-docker AS runtime
 ARG PI_VERSION=0.84.3
 
-# 4) pi binary in the shipped image
-RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION}
+# 4) pi binary in the shipped image + symlinks for sbx binary discovery.
+#    npm installs into npm-global/bin (NPM_CONFIG_PREFIX=/usr/local/share/npm-global),
+#    which is NOT part of the sanitized PATH sbx probes (/usr/local/bin, /usr/bin,
+#    /bin, ~/.local/bin). Symlink pi into those locations so sbx can discover it
+#    during sandbox init. /usr/local/bin needs sudo; ~/.local/bin is user-writable.
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION} \
+    && sudo ln -sf /usr/local/share/npm-global/bin/pi /usr/local/bin/pi \
+    && mkdir -p /home/agent/.local/bin \
+    && ln -sf /usr/local/share/npm-global/bin/pi /home/agent/.local/bin/pi
 
 # 5) copy only the baked state across stages. HOME is /home/agent in both
 #    stages (verified: USER=agent, getent → /home/agent), so these literals
