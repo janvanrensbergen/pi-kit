@@ -1,12 +1,11 @@
 schemaVersion: "1"
-kind: agent
-name: my-pi
-displayName: my Pi
-description: "Pi coding agent (pi pre-installed)"
+kind: sandbox
+name: pi
+displayName: Pi
+description: "Pi coding agent"
 
-agent:
-  image: "ghcr.io/janvanrensbergen/pi-kit:latest"
-  aiFilename: AGENTS.md
+sandbox:
+  image: "ghcr.io/janvanrensbergen/pi-sandbox:latest"
   entrypoint:
     run: [pi, --approve]
 

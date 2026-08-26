@@ -7,20 +7,23 @@ sandbox.
 
 ## GitHub-published sandbox image
 
-The repo builds a **sandbox image with pi + the whole kit pre-installed** from the
-root `Dockerfile` and publishes it to GitHub Container Registry as
-`ghcr.io/janvanrensbergen/pi-kit`. The image bakes everything, so a fresh sandbox
-boots fully configured with no first-boot npm or copy step:
+The repo builds a **sandbox image with pi + the kit baked in as a pi package** from
+the root `Dockerfile` and publishes it to GitHub Container Registry as
+`ghcr.io/janvanrensbergen/pi-kit`. A fresh sandbox pulls the image with pi already
+installed globally and the kit registered as an installed pi package:
 
 - **pi** (the agent binary, pinned via `ARG PI_VERSION`)
 - **the kit's skills/themes/prompts/extensions**, resolved from `/opt/pi-kit`
-  (the Dockerfile's multi-stage `bake` stage runs `pi install /opt/pi-kit`)
-- **`settings.json` preferences**, baked as the global `~/.pi/agent/settings.json`
-- **the five extension packages**, already materialized into `~/.pi/agent/npm/`
+  (the Dockerfile runs `pi install /opt/pi-kit` at build time)
+- the five extension packages auto-install from `settings.json` on first boot
 
-The `bake` stage assembles `~/.pi` + `/opt/pi-kit` at build time (network), and
-the final `runtime` stage copies only that finished state across — the published
-image stays lean and runs offline.
+The image is built with a **single-stage** `Dockerfile`: install pi globally as
+the `agent` user (package `@earendil-works/pi-coding-agent@${PI_VERSION}`),
+`COPY . /opt/pi-kit` (filtered by `.dockerignore`), then run
+`pi install /opt/pi-kit` to register `/opt/pi-kit` as a local-path pi package in
+the sandbox's global `~/.pi/agent/settings.json`. Only the local kit package is
+baked in; the extension packages listed in `settings.json` are left for pi's
+normal first-boot auto-install.
 
 **When it publishes**: a GitHub Actions workflow (`.github/workflows/publish.yml`)
 runs on every push to `main` touching `Dockerfile`/the workflow, and on any
@@ -85,9 +88,8 @@ present when it starts (after the project is trusted):
 | `npm:pi-mcp-adapter` | Lazy MCP server adapter (`/mcp`) |
 | `npm:pi-web-access` | Web search / fetch / GitHub clone / PDF / YouTube |
 
-In the **GHCR sandbox image** these are already installed into
-`~/.pi/agent/npm/` at build time, so a fresh sandbox boots with all five present
-and pi performs no first-boot install.
+In the **GHCR sandbox image** these are not pre-installed; `settings.json` is
+baked into the kit and pi auto-installs the listed packages on first boot.
 
 Package versions **float to latest** at install time (e.g. `npm:pi-subagents` →
 current latest). To pin a version for reproducible installs, change the entry to

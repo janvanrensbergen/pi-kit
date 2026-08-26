@@ -1,70 +1,28 @@
-# pi-kit image: ships pi + the whole kit baked into the run user's global
-# ~/.pi/agent config, so a sandbox boots fully configured with no first-boot
-# npm/copy step.
-#
-# Multi-stage:
-#   - bake:    assembles the global ~/.pi tree (settings + extension packages)
-#              and the /opt/pi-kit package source. Does the network work.
-#   - runtime: the shipped image. Only copies the finished ~/.pi tree and
-#              /opt/pi-kit across — no build cruft, no rm -rf.
+FROM docker/sandbox-templates:shell
 ARG PI_VERSION=0.84.3
 
-# ---------- bake stage: assemble the whole kit into ~/.pi/agent ----------
-FROM docker/sandbox-templates:shell-docker AS bake
-ARG PI_VERSION
-ENV PI_SKIP_VERSION_CHECK=1
+LABEL org.opencontainers.image.title="Docker Sandbox Template for Pi Coding Agent"
+LABEL org.opencontainers.image.description="Sandboxed environment for running Pi coding agent"
+LABEL org.opencontainers.image.version="${PI_VERSION}"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL com.docker.sandboxes="templates"
+LABEL com.docker.sandboxes.base="docker/sandbox-templates:shell"
+LABEL com.docker.sandboxes.flavor="pi"
 
-# The runtime user on docker/sandbox-templates is `agent` (uid/gid 1000) with
-# HOME=/home/agent. Resolve HOME from /etc/passwd so the bake works even if the
-# base image's HOME ever changes; the COPY --from in runtime uses the literal
-# /home/agent (see note there).
-RUN HOME="$(getent passwd "$(id -un)" | cut -d: -f6)" \
-    && test -n "$HOME" \
-    && echo "baking pi-kit into HOME=$HOME for user $(id -un)"
+# Install Pi coding agent globally as the agent user.
+# The binary is published under the @earendil-works scope (matches the
+# globally installed package and all pi docs/skill references).
+USER agent
+RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION}
 
-# 1) install pi globally (base already ships node/npm/git)
-RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION}
-
-# 2) bundle the kit source (build context is filtered by .dockerignore)
+# Bake this repository as an installed pi package. `.dockerignore` keeps the
+# kit source (skills/, themes/, prompts/, extensions/, package.json,
+# settings.json) and excludes .git/node_modules/.pi. `pi install /opt/pi-kit`
+# registers /opt/pi-kit as a local-path pi package in ~/.pi/agent/settings.json,
+# so the kit's resources resolve at boot. Bundle first, then register.
 COPY . /opt/pi-kit
-WORKDIR /opt/pi-kit
-
-# 3) relay the portable settings.json FIRST, then append packages with pi
-#    install (pi install only appends to settings.json; never overwrite after).
-#    The /opt/pi-kit path package contributes its skills/themes/prompts/
-#    extensions via package.json "pi" key; the five npm packages materialize
-#    into ~/.pi/agent/npm/.
-RUN HOME="$(getent passwd "$(id -un)" | cut -d: -f6)" \
-    && mkdir -p "$HOME/.pi/agent" \
-    && cp /opt/pi-kit/settings.json "$HOME/.pi/agent/settings.json" \
+RUN mkdir -p ~/.pi/agent \
     && pi install /opt/pi-kit \
-    && pi install npm:pi-subagents \
-    && pi install npm:@narumitw/pi-plan-mode \
-    && pi install npm:pi-hermes-memory \
-    && pi install npm:pi-mcp-adapter \
-    && pi install npm:pi-web-access
+    && npm cache clean --force
 
-# ---------- runtime stage: the shipped lean image ----------
-FROM docker/sandbox-templates:shell-docker AS runtime
-ARG PI_VERSION=0.84.3
-
-# 4) pi binary in the shipped image + symlinks for sbx binary discovery.
-#    npm installs into npm-global/bin (NPM_CONFIG_PREFIX=/usr/local/share/npm-global),
-#    which is NOT part of the sanitized PATH sbx probes (/usr/local/bin, /usr/bin,
-#    /bin, ~/.local/bin). Symlink pi into all standard bin locations so sbx can
-#    discover it during sandbox init regardless of which probe PATH it uses.
-RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION} \
-    && sudo ln -sf /usr/local/share/npm-global/bin/pi /usr/local/bin/pi \
-    && sudo ln -sf /usr/local/share/npm-global/bin/pi /usr/bin/pi \
-    && sudo ln -sf /usr/local/share/npm-global/bin/pi /bin/pi \
-    && mkdir -p /home/agent/.local/bin \
-    && ln -sf /usr/local/share/npm-global/bin/pi /home/agent/.local/bin/pi
-
-# 5) copy only the baked state across stages. HOME is /home/agent in both
-#    stages (verified: USER=agent, getent → /home/agent), so these literals
-#    align with the bake paths. --chown keeps everything owned by agent.
-COPY --from=bake --chown=1000:1000 /home/agent/.pi /home/agent/.pi
-COPY --from=bake --chown=1000:1000 /opt/pi-kit  /opt/pi-kit
-
-WORKDIR /workspace
-# No ENTRYPOINT: the spec owns [pi, --approve], the image stays binding-neutral.
+# No ENTRYPOINT: spec.yaml owns [pi, --approve]; the image stays binding-neutral.
