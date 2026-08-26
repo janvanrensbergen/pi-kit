@@ -12,3 +12,4 @@ models-store.json
 # Local npm / OS noise (keep the kit pristine)
 node_modules/
 .DS_Store
+*.zip

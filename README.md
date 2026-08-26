@@ -5,12 +5,14 @@ preferences I use across sandboxes. This directory is the living source of my
 Pi config — version it in its own git repo and install it into any fresh
 sandbox.
 
-## GitHub-published sandbox image
+## GitHub-published sandbox image and kit
 
-The repo builds a **sandbox image with pi + the kit baked in as a pi package** from
-the root `Dockerfile` and publishes it to GitHub Container Registry as
-`ghcr.io/janvanrensbergen/pi-kit`. A fresh sandbox pulls the image with pi already
-installed globally and the kit registered as an installed pi package:
+The repo builds and publishes two artifacts to GitHub Container Registry (GHCR):
+
+1. **`ghcr.io/janvanrensbergen/pi-sandbox`**: The Docker sandbox container image with pi pre-installed globally and the kit baked in as an installed pi package from the root `Dockerfile`.
+2. **`ghcr.io/janvanrensbergen/pi-kit`**: The Docker Sandbox kit artifact, packaged as a zip containing `kit/spec.yaml` (schemaVersion 2).
+
+A fresh sandbox pulls the `pi-sandbox` image with pi already installed globally and the kit registered as an installed pi package:
 
 - **pi** (the agent binary, pinned via `ARG PI_VERSION`)
 - **portable preferences**, from `settings.json` baked into `~/.pi/agent/settings.json`
@@ -28,18 +30,18 @@ to register `/opt/pi-kit` as a local-path pi package in the sandbox's global
 they are present in the image (versions float to latest at build time).
 
 **When it publishes**: a GitHub Actions workflow (`.github/workflows/publish.yml`)
-runs on every push to `main` touching `Dockerfile`/the workflow, and on any
+runs on every push to `main` touching `Dockerfile`, the workflow, `kit/**`, or kit resources, and on any
 `v*` release/tag.
 
-**Image tags**:  `latest` (from `main`)
+**Artifact tags**: `latest` (from `main`)
 
 - `sha-<short>` for every build
-- `v<version>` for semver tags (e.g. tag `v0.1.0` → `ghcr.io/janvanrensbergen/pi-kit:0.1.0`)
+- `v<version>` for semver tags (e.g. tag `v0.1.0` → `0.1.0`)
 
-The package is set **public** so sandboxes can pull it without credentials.
+The packages are set **public** so sandboxes can pull them without credentials.
 
-The root `spec.yaml` is the canonical sbx kit spec. Its `agent.image` points
-at the published GHCR image, and `agent.entrypoint.run` is `[pi, --approve]`.
+The `kit/spec.yaml` is the canonical sbx kit spec. Its `sandbox.image` points
+at the published GHCR image (`ghcr.io/janvanrensbergen/pi-sandbox:latest`), and `sandbox.entrypoint` is `[pi, --approve]`.
 
 The pi version is pinned in the Dockerfile via `ARG PI_VERSION` (default
 `0.84.3`). To publish a different pi, bump that default (and the matching
@@ -47,20 +49,25 @@ The pi version is pinned in the Dockerfile via `ARG PI_VERSION` (default
 
 ### Starting a sandbox from this kit
 
-Straight from the OCI registry:
+Using the published kit from GHCR:
 
 ```bash
-sbx <name> --image ghcr.io/janvanrensbergen/pi-kit:latest
+sbx run pi --kit ghcr.io/janvanrensbergen/pi-kit:latest
 ```
 
-or from the repo's tracked `spec.yaml` (see the sbx CLI docs for how to point a
-kit at a GitHub spec):
+or create directly:
 
 ```bash
-sbx create --kit git:github.com/janvanrensbergen/pi-kit
+sbx create --kit ghcr.io/janvanrensbergen/pi-kit:latest
 ```
 
-Both end with a pi-ready environment: `pi` is present, `OPENROUTER_API_KEY` is
+or straight from the container image:
+
+```bash
+sbx <name> --image ghcr.io/janvanrensbergen/pi-sandbox:latest
+```
+
+All end with a pi-ready environment: `pi` is present, `OPENROUTER_API_KEY` is
 injected, domains are allowlisted, and `NO_PROXY` is set.
 
 ## What's inside
@@ -68,8 +75,8 @@ injected, domains are allowlisted, and `NO_PROXY` is set.
 | Path | Purpose |
 |------|---------|
 | `skills/`  | Skill packages (Agent Skills format, one dir each) |
-| `Dockerfile` | Builds the pi-pre-installed sandbox image (published to GHCR) |
-| `spec.yaml` | Canonical sbx kit spec (agent.image → GHCR image, entrypoint `[pi, --approve]`) |
+| `Dockerfile` | Builds the pi-pre-installed sandbox image (published to `ghcr.io/janvanrensbergen/pi-sandbox`) |
+| `kit/spec.yaml` | Canonical sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/pi-kit`) |
 | `settings.json` | Portable preferences, incl. the `packages` list of extensions to install |
 | `.global-settings.example.json` | Snapshot of my global `~/.pi/agent/settings.json` |
 | `.pi-settings.example.json` | Snapshot of a project-level `.pi/settings.json` |

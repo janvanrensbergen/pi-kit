@@ -16,4 +16,6 @@ Dockerfile
 .dockerignore
 install.sh
 spec.yaml
+kit
+*.zip
 .github
