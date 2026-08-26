@@ -3,6 +3,24 @@ name: publish pi-kit and sandbox image
 on:
   push:
     branches: [main]
+    tags:
+      - "v*"
+    # Any content that lands in the image or kit rebuilds/re-publishes:
+    # Dockerfile, .dockerignore, portable settings, package manifest,
+    # kit spec, and the shipped resource categories.
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - .github/workflows/publish.yml
+      - settings.json
+      - package.json
+      - skills/**
+      - themes/**
+      - prompts/**
+      - extensions/**
+      - kit/**
+  release:
+    types: [published]
 
 permissions:
   contents: read
