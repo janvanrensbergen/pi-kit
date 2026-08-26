@@ -51,10 +51,12 @@ ARG PI_VERSION=0.84.3
 # 4) pi binary in the shipped image + symlinks for sbx binary discovery.
 #    npm installs into npm-global/bin (NPM_CONFIG_PREFIX=/usr/local/share/npm-global),
 #    which is NOT part of the sanitized PATH sbx probes (/usr/local/bin, /usr/bin,
-#    /bin, ~/.local/bin). Symlink pi into those locations so sbx can discover it
-#    during sandbox init. /usr/local/bin needs sudo; ~/.local/bin is user-writable.
+#    /bin, ~/.local/bin). Symlink pi into all standard bin locations so sbx can
+#    discover it during sandbox init regardless of which probe PATH it uses.
 RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@${PI_VERSION} \
     && sudo ln -sf /usr/local/share/npm-global/bin/pi /usr/local/bin/pi \
+    && sudo ln -sf /usr/local/share/npm-global/bin/pi /usr/bin/pi \
+    && sudo ln -sf /usr/local/share/npm-global/bin/pi /bin/pi \
     && mkdir -p /home/agent/.local/bin \
     && ln -sf /usr/local/share/npm-global/bin/pi /home/agent/.local/bin/pi
 
