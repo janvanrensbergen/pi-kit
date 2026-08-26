@@ -1,4 +1,4 @@
-schemaVersion: "1"
+schemaVersion: "2"
 kind: sandbox
 name: pi
 displayName: Pi
@@ -6,42 +6,42 @@ description: "Pi coding agent"
 
 sandbox:
   image: "ghcr.io/janvanrensbergen/pi-sandbox:latest"
-  entrypoint:
-    run: [pi, --approve]
+  entrypoint: [pi, --approve]
 
-network:
-  allowedDomains:
-    - "pi.dev"
-    - "github.com"
-    - "api.github.com"
-    - "*.githubcopilot.com"
-    - "*.individual.githubcopilot.com"
-    - "*.business.githubcopilot.com"
-    - "copilot-proxy.githubusercontent.com"
-    - "*.githubusercontent.com"
-    - "registry.npmjs.org"
-    - "localhost:64342"
-    - "start.ktor.io"
-    - "services.gradle.org"
-    - "plugins.gradle.org"
-    - "repo.maven.apache.org"
-    - "repo1.maven.org"
-    - "openrouter.ai"
-  serviceDomains:
-    "openrouter.ai": openrouter
-  serviceAuth:
-    openrouter:
-      headerName: Authorization
-      valueFormat: "Bearer %s"
+permissions:
+  network:
+    allow:
+      - auth.openai.com
+      - chatgpt.com
+      - github.com
+      - api.github.com
+      - api.githubcopilot.com
+      - api.individual.githubcopilot.com
+      - api.business.githubcopilot.com
+      - copilot-proxy.githubusercontent.com
+      - objects.githubusercontent.com
+      - raw.githubusercontent.com
+      - codeload.github.com
+      - pi.dev
+      - mcp.context7.com
+      - html.duckduckgo.com
+      - malware-list.aikido.dev
+
+    deny:
+      - 10.0.0.0/8
+      - 172.16.0.0/12
+      - 192.168.0.0/16
+      - 169.254.169.254/32
+      - api.exa.ai
+      - mcp.exa.ai
+      - telemetry.agent-browser.dev
 
 credentials:
-  sources:
-    openrouter:
-      env:
-        - OPENROUTER_API_KEY
-
-environment:
-  variables:
-    NO_PROXY: "github.com,api.github.com,.githubcopilot.com,.individual.githubcopilot.com,.business.githubcopilot.com,.githubusercontent.com"
-  proxyManaged:
-    - OPENROUTER_API_KEY
+  - service: openrouter
+    apiKey:
+      name: OPENROUTER_API_KEY
+      proxyManaged: true
+      inject:
+        - domain: openrouter.ai
+          header: Authorization
+          format: "Bearer %s"
