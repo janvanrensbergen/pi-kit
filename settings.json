@@ -11,11 +11,28 @@
   "theme": "dark",
   "defaultProvider": "openrouter",
   "defaultModel": "openrouter/openai/gpt-5.6-luna-pro",
-  "defaultThinkingLevel": "high",
+  "defaultThinkingLevel": "low",
+  "showCacheMissNotices": true,
+  "thinkingBudget": {
+    "low": 2048,
+    "medium": 4096,
+    "high": 8192
+  },
   "terminal": {
     "showTerminalProgress": true
   },
   "compaction": {
     "enabled": true
+  },
+  "subagents": {
+    "defaultModel": "openrouter/deepseek/deepseek-v4-flash-0731",
+    "defaultThinking": "low",
+    "maxThinking": "high",
+    "agentOverrides": {
+      "oracle": {
+        "model": "openrouter/openai/gpt-5.6-luna-pro",
+        "thinking": "high"
+      }
+    }
   }
 }
