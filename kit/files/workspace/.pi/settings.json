@@ -9,7 +9,7 @@
     "github-copilot/gpt-5.6-terra",
     "github-copilot/gpt-5.5:high",
     "github-copilot/claude-opus-4.8:high",
-    "github-copilot/claude-opus-4.6:medium/",
+    "github-copilot/claude-opus-4.6",
     "github-copilot/claude-sonnet-4.6:medium",
     "github-copilot/gpt-5.3-codex:medium",
     "github-copilot/gemini-3.1-pro-preview:medium",
@@ -26,7 +26,6 @@
     "openrouter/nvidia/nemotron-3-super-120b-a12b:free",
     "openrouter/cohere/north-mini-code:free",
     "openrouter/google/gemma-4-31b-it:free",
-    "openrouter/openai/gpt-oss-20b:free",
     "openrouter/openrouter/free"
   ]
 }
