@@ -88,7 +88,12 @@ credentials:
         - domain: openrouter.ai
           header: Authorization
           format: "Bearer %s"
-  
+
+setup:
+  install:
+    - command: "pi update --all"
+      user: "1000"
+      description: "Update pi and extension packages to latest"
 
 agentInstructions:
   filename: AGENTS.md
