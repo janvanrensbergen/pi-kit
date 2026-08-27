@@ -27,5 +27,61 @@
     "openrouter/cohere/north-mini-code:free",
     "openrouter/google/gemma-4-31b-it:free",
     "openrouter/openrouter/free"
-  ]
+  ],
+  "subagents": {
+    "defaultProvider": "github-copilot",
+    "defaultModel": "github-copilot/gpt-5.5",
+    "defaultThinking": "medium",
+
+    "agentOverrides": {
+      "scout": {
+        "model": "github-copilot/gpt-5.4-mini",
+        "thinking": "low",
+        "fallbackModels": [
+          "openrouter/deepseek/deepseek-v4-flash-0731"
+        ]
+      },
+
+      "researcher": {
+        "model": "github-copilot/gemini-3.1-pro-preview",
+        "thinking": "medium",
+        "fallbackModels": [
+          "openrouter/openai/gpt-5.6-luna-pro"
+        ]
+      },
+
+      "reviewer": {
+        "model": "github-copilot/claude-sonnet-4.6",
+        "thinking": "high",
+        "fallbackModels": [
+          "openrouter/openai/gpt-5.6-luna-pro",
+          "openrouter/deepseek/deepseek-v4-flash-0731"
+        ]
+      },
+
+      "worker": {
+        "model": "github-copilot/gpt-5.6-luna",
+        "thinking": "medium",
+        "fallbackModels": [
+          "openrouter/openai/gpt-5.6-luna-pro"
+        ]
+      },
+
+      "oracle": {
+        "model": "github-copilot/claude-opus-4.8",
+        "thinking": "high",
+        "fallbackModels": [
+          "openrouter/openai/gpt-5.6-luna-pro"
+        ]
+      },
+
+      "delegate": {
+        "model": "github-copilot/gpt-5.5",
+        "thinking": "medium",
+        "fallbackModels": [
+          "openrouter/openai/gpt-5.6-luna-pro"
+        ]
+      }
+    }
+  }
 }
