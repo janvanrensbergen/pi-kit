@@ -89,6 +89,4 @@ jobs:
 
       - name: Publish kit to GHCR
         run: |
-          sha="${GITHUB_SHA::7}"
           sbx kit push ./kit ghcr.io/janvanrensbergen/pi-kit:latest
-          sbx kit push ./kit ghcr.io/janvanrensbergen/pi-kit:sha-${sha}
