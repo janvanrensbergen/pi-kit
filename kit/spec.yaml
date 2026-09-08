@@ -6,7 +6,7 @@ description: "Pi coding agent"
 
 sandbox:
   image: "ghcr.io/janvanrensbergen/pi-sandbox:latest"
-  entrypoint: [pi, --approve]
+  entrypoint: [pi-entrypoint, --approve]
 
 permissions:
   network:

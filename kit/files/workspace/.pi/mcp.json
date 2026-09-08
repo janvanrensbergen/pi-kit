@@ -2,10 +2,8 @@
   "mcpServers": {
     "idea": {
       "type": "remote",
-      "url": "http://host.docker.internal:64342/stream",
-      "headers": {
-        "Host": "127.0.0.1:64342"
-      }
+      "url": "http://127.0.0.1:64342/stream",
+      "protocolVersion": "legacy"
     }
   }
 }

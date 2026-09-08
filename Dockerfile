@@ -14,7 +14,7 @@ LABEL com.docker.sandboxes.flavor="pi"
 # package ships the binary as `fdfind`; pi looks for `fd`, so symlink it.
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl fd-find \
+    && apt-get install -y --no-install-recommends ca-certificates curl fd-find socat \
     && ln -sf /usr/bin/fdfind /usr/bin/fd \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y --no-install-recommends nodejs \
@@ -53,4 +53,7 @@ RUN mkdir -p ~/.pi/agent \
     && pi install npm:pi-web-access \
     && npm cache clean --force
 
-# No ENTRYPOINT: spec.yaml owns [pi, --approve]; the image stays binding-neutral.
+COPY docker/pi-entrypoint.sh /usr/local/bin/pi-entrypoint
+RUN chmod 0755 /usr/local/bin/pi-entrypoint
+
+# The entrypoint starts the host IDEA MCP loopback forward before Pi.
