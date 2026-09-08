@@ -6,15 +6,15 @@ on:
     tags:
       - "v*"
     # Any content that lands in the image or kit rebuilds/re-publishes:
-    # Dockerfile, .dockerignore, portable settings, package manifest,
-    # kit spec, and the shipped resource categories.
+    # Dockerfile, .dockerignore, Pi/OMP settings, package manifest,
+    # kit specs, and the shipped resource categories.
     paths:
       - Dockerfile
       - Dockerfile.omp
       - omp/**
       - .dockerignore
       - .github/workflows/publish.yml
-      - settings.json
+      - pi/**
       - package.json
       - skills/**
       - themes/**
@@ -34,18 +34,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # QEMU registers binfmt handlers so Buildx can build non-amd64
       # platforms (linux/arm64) on the amd64 runner via emulation.
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR (Docker)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -53,7 +53,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker sandbox image
         id: meta-image
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/janvanrensbergen/pi-sandbox
           tags: |
@@ -63,7 +63,7 @@ jobs:
             type=raw,value=v{{raw}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
 
       - name: Build and push sandbox image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -98,20 +98,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Log in to GHCR (Docker)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Extract metadata (tags, labels) for OMP sandbox image
         id: meta-omp-image
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/janvanrensbergen/omp-sandbox
           tags: |
@@ -120,7 +120,7 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=v{{raw}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
       - name: Build and push OMP sandbox image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.omp

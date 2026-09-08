@@ -37,14 +37,14 @@ RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION} \
 
 # Bake this repository as an installed pi package. `.dockerignore` keeps the
 # kit source (skills/, themes/, prompts/, extensions/, package.json,
-# settings.json) and excludes .git/node_modules/.pi. The image is baked fully
-# configured and offline: settings.json is written to the run user's global
+# pi/settings.json) and excludes .git/node_modules/.pi. The image is baked fully
+# configured and offline: pi/settings.json is written to the run user's global
 # config, `/opt/pi-kit` is registered as a local-path pi package, and the five
 # selection packages are pre-installed (floating to latest) so first boot does
 # no auto-install and no network fetch.
 COPY . /opt/pi-kit
 RUN mkdir -p ~/.pi/agent \
-    && cp /opt/pi-kit/settings.json ~/.pi/agent/settings.json \
+    && cp /opt/pi-kit/pi/settings.json ~/.pi/agent/settings.json \
     && pi install /opt/pi-kit \
     && pi install npm:pi-subagents \
     && pi install npm:@narumitw/pi-plan-mode \

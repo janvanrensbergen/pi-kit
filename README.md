@@ -1,9 +1,9 @@
 # pi-kit
 
-Personal Pi coding-agent toolkit: the skills, themes, prompts, extensions, and
-preferences I use across sandboxes. This directory is the living source of my
-Pi config — version it in its own git repo and install it into any fresh
-sandbox.
+Personal Pi/Oh My Pi coding-agent toolkit: shared skills, themes, prompts,
+extensions, and tool-specific runtime preferences I use across sandboxes. This
+directory is the living source of my agent config — version it in its own git
+repo and install it into any fresh sandbox.
 
 ## GitHub-published sandbox image and kit
 
@@ -15,7 +15,7 @@ The repo builds and publishes two artifacts to GitHub Container Registry (GHCR):
 A fresh sandbox pulls the `pi-sandbox` image with pi already installed globally and the kit registered as an installed pi package:
 
 - **pi** (the agent binary, pinned via `ARG PI_VERSION`)
-- **portable preferences**, from `settings.json` baked into `~/.pi/agent/settings.json`
+- **portable Pi preferences**, from `pi/settings.json` baked into `~/.pi/agent/settings.json`
 - **the kit's skills/themes/prompts/extensions**, resolved from `/opt/pi-kit`
   (the Dockerfile runs `pi install /opt/pi-kit` at build time)
 - **the five extension packages, pre-installed** into the image so first boot does
@@ -24,7 +24,7 @@ A fresh sandbox pulls the `pi-sandbox` image with pi already installed globally 
 The image is built with a **single-stage** `Dockerfile`: install pi globally as
 the `agent` user (package `@earendil-works/pi-coding-agent@${PI_VERSION}`),
 `COPY . /opt/pi-kit` (filtered by `.dockerignore`), then write
-`settings.json` to `~/.pi/agent/settings.json`, run `pi install /opt/pi-kit`
+`pi/settings.json` to `~/.pi/agent/settings.json`, run `pi install /opt/pi-kit`
 to register `/opt/pi-kit` as a local-path pi package in the sandbox's global
 `~/.pi/agent/settings.json`, and `pi install` the five extension packages so
 they are present in the image (versions float to latest at build time).
@@ -98,8 +98,11 @@ unchanged and remains the default.
 |------|---------|
 | `skills/`  | Skill packages (Agent Skills format, one dir each) |
 | `Dockerfile` | Builds the pi-pre-installed sandbox image (published to `ghcr.io/janvanrensbergen/pi-sandbox`) |
-| `kit/spec.yaml` | Canonical sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/pi-kit`) |
-| `settings.json` | Portable preferences, incl. the `packages` list of extensions to install |
+| `Dockerfile.omp` | Builds the Oh My Pi sandbox image (published to `ghcr.io/janvanrensbergen/omp-sandbox`) |
+| `kit/spec.yaml` | Canonical Pi sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/pi-kit`) |
+| `kit-omp/spec.yaml` | Canonical OMP sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/omp-kit`) |
+| `pi/settings.json` | Pi runtime preferences, incl. the `packages` list of extensions to install |
+| `omp/config.yml` | Oh My Pi runtime resource-path configuration |
 | `.global-settings.example.json` | Snapshot of my global `~/.pi/agent/settings.json` |
 | `.pi-settings.example.json` | Snapshot of a project-level `.pi/settings.json` |
 | `docs/` | Reference notes (e.g. GitHub Copilot model pricing) |
@@ -107,7 +110,7 @@ unchanged and remains the default.
 
 ### Bundled extensions
 
-The kit's `settings.json` lists extension packages under `"packages"` so every
+The kit's `pi/settings.json` lists extension packages under `"packages"` so every
 sandbox gets the same tooling. Pi auto-installs any listed package that isn't
 present when it starts (after the project is trusted):
 
