@@ -16,10 +16,14 @@ USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl fd-find \
     && ln -sf /usr/bin/fdfind /usr/bin/fd \
+    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && node --version \
     && RTK_INSTALL_DIR=/usr/local/bin RTK_VERSION=${RTK_VERSION} \
        sh -c 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' \
     && rm -rf /var/lib/apt/lists/*
 
+ENV NODE_USE_ENV_PROXY=1
 ENV RTK_TELEMETRY_DISABLED=1
 
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
