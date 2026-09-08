@@ -87,10 +87,13 @@ sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
 `rtk init -g --agent pi` for Pi-compatible runtime setup, and starts with
 `[omp-entrypoint, --auto-approve]` so the IDEA MCP loopback forward is available.
-It attempts to provide the repository's skills, themes, prompts, and extensions through
-OMP's native resource locations. OMP's built-in configuration and extension
-APIs are evolving, so compatibility gaps are possible; the stable Pi kit is
-unchanged and remains the default.
+It provides the repository's skills, themes, prompts, and extensions through
+OMP's native resource locations. OMP 18.x has native task subagents, plan mode,
+MCP, web search/fetch, and memory backends, so `omp/config.yml` intentionally
+uses OMP-native `task.*`, `modelRoles`, and `memory.backend` settings instead of
+Pi's top-level `packages` extension list. OMP's built-in configuration and
+extension APIs are evolving, so compatibility gaps are possible; the stable Pi
+kit is unchanged and remains the default.
 
 ## What's inside
 
@@ -110,9 +113,9 @@ unchanged and remains the default.
 
 ### Bundled extensions
 
-The kit's `pi/settings.json` lists extension packages under `"packages"` so every
-sandbox gets the same tooling. Pi auto-installs any listed package that isn't
-present when it starts (after the project is trusted):
+The stable Pi kit's `pi/settings.json` lists extension packages under
+`"packages"` so every Pi sandbox gets the same tooling. Pi auto-installs any
+listed package that isn't present when it starts (after the project is trusted):
 
 | Package | What it adds |
 |---------|-------------|
@@ -122,10 +125,14 @@ present when it starts (after the project is trusted):
 | `npm:pi-mcp-adapter` | Lazy MCP server adapter (`/mcp`) |
 | `npm:pi-web-access` | Web search / fetch / GitHub clone / PDF / YouTube |
 
-In the **GHCR sandbox image** the packages are pre-installed at build time
-(floating to latest), so first boot performs no package auto-install for the
-bundled selection.
+In the stable Pi **GHCR sandbox image** the packages are pre-installed at build
+time (floating to latest), so first boot performs no package auto-install for
+the bundled selection.
 
 Package versions **float to latest** at install time (e.g. `npm:pi-subagents` →
 current latest). To pin a version for reproducible installs, change the entry to
 `npm:pi-subagents@<version>`.
+
+The experimental OMP kit does **not** use this Pi-style `packages` list. OMP
+18.x includes native equivalents for the bundled Pi extensions above, and
+additional OMP add-ons should be installed or managed with `omp plugin ...`.
