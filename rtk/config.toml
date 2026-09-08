@@ -1,0 +1,23 @@
+[tracking]
+enabled = true
+history_days = 90
+
+[display]
+colors = false
+emoji = false
+max_width = 120
+
+[tee]
+enabled = true
+mode = "failures"
+max_files = 20
+max_file_size = 1048576
+
+[telemetry]
+enabled = false
+
+[hooks]
+exclude_commands = []
+
+[awareness]
+level = "high"

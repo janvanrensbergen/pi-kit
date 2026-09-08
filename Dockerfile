@@ -1,5 +1,6 @@
 FROM docker/sandbox-templates:shell
 ARG PI_VERSION=0.84.3
+ARG RTK_VERSION=v0.48.0
 
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Pi Coding Agent"
 LABEL org.opencontainers.image.description="Sandboxed environment for running Pi coding agent"
@@ -13,15 +14,22 @@ LABEL com.docker.sandboxes.flavor="pi"
 # package ships the binary as `fdfind`; pi looks for `fd`, so symlink it.
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends fd-find \
+    && apt-get install -y --no-install-recommends ca-certificates curl fd-find \
     && ln -sf /usr/bin/fdfind /usr/bin/fd \
+    && RTK_INSTALL_DIR=/usr/local/bin RTK_VERSION=${RTK_VERSION} \
+       sh -c 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' \
     && rm -rf /var/lib/apt/lists/*
+
+ENV RTK_TELEMETRY_DISABLED=1
+
+COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 
 # Install Pi coding agent globally as the agent user.
 # The binary is published under the @earendil-works scope (matches the
 # globally installed package and all pi docs/skill references).
 USER agent
-RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION}
+RUN npm install -g @earendil-works/pi-coding-agent@${PI_VERSION} \
+    && rtk init --agent pi --global --auto-patch
 
 # Bake this repository as an installed pi package. `.dockerignore` keeps the
 # kit source (skills/, themes/, prompts/, extensions/, package.json,
