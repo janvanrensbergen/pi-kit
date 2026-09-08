@@ -53,7 +53,9 @@ RUN mkdir -p ~/.pi/agent \
     && pi install npm:pi-web-access \
     && npm cache clean --force
 
+USER root
 COPY docker/pi-entrypoint.sh /usr/local/bin/pi-entrypoint
 RUN chmod 0755 /usr/local/bin/pi-entrypoint
+USER agent
 
 # The entrypoint starts the host IDEA MCP loopback forward before Pi.
