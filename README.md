@@ -85,9 +85,11 @@ sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
 ```
 
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
-`rtk init -g --agent pi` for Pi-compatible runtime setup, and starts with
-`[omp-entrypoint, --auto-approve]` so the IDEA MCP loopback forward is available.
-It provides the repository's skills, themes, prompts, and extensions through
+`rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
+ships `extensions/rtk.js` into OMP's extension directory so OMP bash calls are
+rewritten through `rtk rewrite`. It starts with `[omp-entrypoint, --auto-approve]`
+so the IDEA MCP loopback forward is available.
+The image provides the repository's skills, themes, prompts, and extensions through
 OMP's native resource locations. OMP 18.x has native task subagents, plan mode,
 MCP, web search/fetch, and memory backends, so `omp/config.yml` intentionally
 uses OMP-native `task.*`, `modelRoles`, and `memory.backend` settings instead of
@@ -109,7 +111,7 @@ kit is unchanged and remains the default.
 | `.global-settings.example.json` | Snapshot of my global `~/.pi/agent/settings.json` |
 | `.pi-settings.example.json` | Snapshot of a project-level `.pi/settings.json` |
 | `docs/` | Reference notes (e.g. GitHub Copilot model pricing) |
-| `prompts/` `themes/` `extensions/` | Optional categories (empty by default) |
+| `prompts/` `themes/` `extensions/` | Optional resource categories; `extensions/rtk.js` supplies the OMP RTK bash rewrite hook |
 
 ### Bundled extensions
 
@@ -134,5 +136,6 @@ current latest). To pin a version for reproducible installs, change the entry to
 `npm:pi-subagents@<version>`.
 
 The experimental OMP kit does **not** use this Pi-style `packages` list. OMP
-18.x includes native equivalents for the bundled Pi extensions above, and
-additional OMP add-ons should be installed or managed with `omp plugin ...`.
+18.x includes native equivalents for the bundled Pi extensions above, while the
+RTK bash rewrite hook is shipped as a local OMP extension because RTK v0.48.0
+does not yet install `--agent omp` directly.
