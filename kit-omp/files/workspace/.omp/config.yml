@@ -52,6 +52,9 @@ theme:
 mcp:
   enableProjectConfig: true
 
+memory:
+  backend: local
+
 task:
   agentModelOverrides:
     scout: github-copilot/mai-code-1.1-flash:low
