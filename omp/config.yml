@@ -5,11 +5,48 @@
 skills:
   - /home/agent/.omp/agent/skills
 
+enableSkillCommands: true
+
+packages:
+  - npm:pi-subagents
+  - npm:@narumitw/pi-plan-mode
+  - npm:pi-hermes-memory
+  - npm:pi-mcp-adapter
+  - npm:pi-web-access
+
 prompts:
   - /home/agent/.omp/agent/prompts
 
 themes:
   - /home/agent/.omp/agent/themes
+
+theme: dark
+
+defaultProvider: github-copilot
+defaultModel: github-copilot/gpt-5.5
+defaultThinkingLevel: low
+showCacheMissNotices: true
+
+thinkingBudget:
+  low: 2048
+  medium: 4096
+  high: 8192
+
+terminal:
+  showTerminalProgress: true
+
+compaction:
+  enabled: true
+
+subagents:
+  defaultProvider: github-copilot
+  defaultModel: github-copilot/gpt-5.5
+  defaultThinking: low
+  maxThinking: high
+  agentOverrides:
+    oracle:
+      model: github-copilot/claude-opus-4.8
+      thinking: high
 
 extensions:
   - /home/agent/.omp/agent/extensions
