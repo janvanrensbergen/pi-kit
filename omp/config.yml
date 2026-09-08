@@ -1,0 +1,17 @@
+# OMP configuration for the experimental pi-kit sibling.
+# Keep resource paths explicit so the image does not depend on the checkout path.
+skills:
+  customDirectories:
+    - /home/agent/.omp/agent/skills
+
+prompts:
+  customDirectories:
+    - /home/agent/.omp/agent/prompts
+
+themes:
+  customDirectories:
+    - /home/agent/.omp/agent/themes
+
+extensions:
+  customDirectories:
+    - /home/agent/.omp/agent/extensions

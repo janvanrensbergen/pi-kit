@@ -1,0 +1,45 @@
+FROM docker/sandbox-templates:shell
+ARG OMP_VERSION=18.1.14
+ARG RTK_VERSION=v0.48.0
+
+LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
+LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
+LABEL org.opencontainers.image.version="${OMP_VERSION}"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL com.docker.sandboxes="templates"
+LABEL com.docker.sandboxes.base="docker/sandbox-templates:shell"
+LABEL com.docker.sandboxes.flavor="omp"
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl fd-find libstdc++6 socat \
+    && ln -sf /usr/bin/fdfind /usr/bin/fd \
+    && RTK_INSTALL_DIR=/usr/local/bin RTK_VERSION=${RTK_VERSION} \
+       sh -c 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV RTK_TELEMETRY_DISABLED=1
+COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
+
+USER agent
+RUN curl -fsSL https://bun.sh/install | bash \
+    && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
+    && rtk init -g --agent pi
+ENV PATH="/home/agent/.bun/bin:${PATH}"
+
+# Install the repository resources into OMP's native global resource locations.
+# The OMP config below also declares these locations explicitly.
+COPY --chown=agent:agent skills /home/agent/.omp/agent/skills
+COPY --chown=agent:agent themes /home/agent/.omp/agent/themes
+COPY --chown=agent:agent prompts /home/agent/.omp/agent/prompts
+COPY --chown=agent:agent extensions /home/agent/.omp/agent/extensions
+COPY --chown=agent:agent omp/config.yml /home/agent/.omp/agent/config.yml
+
+RUN /home/agent/.bun/bin/bun pm cache rm 2>/dev/null || true
+
+USER root
+COPY docker/omp-entrypoint.sh /usr/local/bin/omp-entrypoint
+RUN chmod 0755 /usr/local/bin/omp-entrypoint
+USER agent
+
+# The entrypoint starts the host IDEA MCP loopback forward before OMP.

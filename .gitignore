@@ -13,3 +13,4 @@ models-store.json
 node_modules/
 .DS_Store
 *.zip
+.sandbox-backup/

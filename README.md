@@ -70,6 +70,28 @@ sbx <name> --image ghcr.io/janvanrensbergen/pi-sandbox:latest
 All end with a pi-ready environment: `pi` is present, `OPENROUTER_API_KEY` is
 injected, domains are allowlisted, and `NO_PROXY` is set.
 
+### Experimental Oh My Pi sibling kit
+
+This repository also publishes an experimental OMP flavor. It preserves the Pi
+kit and uses a separate image and sbx kit:
+
+- `ghcr.io/janvanrensbergen/omp-sandbox`
+- `ghcr.io/janvanrensbergen/omp-kit:latest`
+
+Start it with:
+
+```bash
+sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
+```
+
+The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
+`rtk init -g --agent pi` for Pi-compatible runtime setup, and starts with
+`[omp-entrypoint, --auto-approve]` so the IDEA MCP loopback forward is available.
+It attempts to provide the repository's skills, themes, prompts, and extensions through
+OMP's native resource locations. OMP's built-in configuration and extension
+APIs are evolving, so compatibility gaps are possible; the stable Pi kit is
+unchanged and remains the default.
+
 ## What's inside
 
 | Path | Purpose |
