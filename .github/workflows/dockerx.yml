@@ -1,0 +1,60 @@
+name: build and publish OMP full image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths:
+      - Dockerfile.omp
+      - kit-omp/**
+      - omp/**
+      - .github/workflows/dockerx.yml
+  pull_request:
+    paths:
+      - Dockerfile.omp
+      - kit-omp/**
+      - omp/**
+      - .github/workflows/dockerx.yml
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/janvanrensbergen/omp-sandbox
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push full OMP image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.omp
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ${{ env.IMAGE }}:full-${{ github.sha }}
+            ${{ env.IMAGE }}:full
+          build-args: |
+            BUILD_KOTLIN_LSP=1
+          cache-from: type=gha,scope=omp-full
+          cache-to: type=gha,mode=max,scope=omp-full

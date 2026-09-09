@@ -1,7 +1,9 @@
 FROM docker/sandbox-templates:shell
 ARG OMP_VERSION=18.1.14
 ARG RTK_VERSION=v0.48.0
-
+ARG BUILD_KOTLIN_LSP=0
+ARG KOTLIN_LSP_VERSION=latest
+ARG KOTLIN_LSP_TARGET_PLATFORM=linux-arm64
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
 LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
 LABEL org.opencontainers.image.version="${OMP_VERSION}"
@@ -12,20 +14,27 @@ LABEL com.docker.sandboxes.flavor="omp"
 
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl fd-find libstdc++6 socat \
+    && apt-get install -y --no-install-recommends ca-certificates curl fd-find libstdc++6 socat unzip gzip \
     && ln -sf /usr/bin/fdfind /usr/bin/fd \
     && RTK_INSTALL_DIR=/usr/local/bin RTK_VERSION=${RTK_VERSION} \
        sh -c 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' \
     && rm -rf /var/lib/apt/lists/*
 
+# Installer script for kotlin-lsp (user-local install + root fallback symlink)
+COPY install-kotlin-lsp.sh /usr/local/bin/install-kotlin-lsp.sh
+RUN chmod 0755 /usr/local/bin/install-kotlin-lsp.sh \
+    && if [ "${BUILD_KOTLIN_LSP}" = "1" ]; then \
+         KOTLIN_LSP_VERSION="${KOTLIN_LSP_VERSION}" KOTLIN_LSP_TARGET_PLATFORM="${KOTLIN_LSP_TARGET_PLATFORM}" /usr/local/bin/install-kotlin-lsp.sh; \
+       fi
+
 ENV RTK_TELEMETRY_DISABLED=1
+ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:${PATH}"
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 
 USER agent
 RUN curl -fsSL https://bun.sh/install | bash \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
     && rtk init -g --agent pi
-ENV PATH="/home/agent/.bun/bin:${PATH}"
 
 # Install the repository resources into OMP's native global resource locations.
 # The OMP config below also declares these locations explicitly.
@@ -34,6 +43,12 @@ COPY --chown=agent:agent themes /home/agent/.omp/agent/themes
 COPY --chown=agent:agent prompts /home/agent/.omp/agent/prompts
 COPY --chown=agent:agent extensions /home/agent/.omp/agent/extensions
 COPY --chown=agent:agent omp/config.yml /home/agent/.omp/agent/config.yml
+# Optional Kotlin LSP configuration is installed for full images.
+RUN if command -v kotlin-lsp >/dev/null 2>&1; then \
+      mkdir -p /home/agent/.omp/agent \
+      && printf '{"kotlin":{"command":"kotlin-lsp"}}\n' > /home/agent/.omp/agent/lsp.json \
+      && chown -R agent:agent /home/agent/.omp/agent; \
+    fi
 
 RUN /home/agent/.bun/bin/bun pm cache rm 2>/dev/null || true
 
