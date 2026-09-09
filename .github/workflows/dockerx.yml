@@ -56,5 +56,6 @@ jobs:
             ${{ env.IMAGE }}:full
           build-args: |
             BUILD_KOTLIN_LSP=1
+            KOTLIN_LSP_VERSION=0.0.12
           cache-from: type=gha,scope=omp-full
           cache-to: type=gha,mode=max,scope=omp-full
