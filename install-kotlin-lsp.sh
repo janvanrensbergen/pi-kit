@@ -21,27 +21,70 @@ fi
 
 VERS=${KOTLIN_LSP_VERSION}
 TMPDIR=$(mktemp -d)
+cleanup() {
+  rm -rf "$TMPDIR"
+}
+trap cleanup EXIT
+
 cd "$TMPDIR"
 
 URL="https://marketplace.visualstudio.com/_apis/public/gallery/publishers/JetBrains/vsextensions/kotlin-server/${VERS}/vspackage?targetPlatform=${TP}"
 
-echo "Downloading kotlin-server vsix from $URL"
-curl -fL -o kotlin-server.vsix.gz "$URL"
+echo "[kotlin-lsp] Downloading kotlin-server ${VERS} for ${TP}"
+curl_error_log=curl-error.log
+http_status=$(curl --fail --location --silent --show-error --output kotlin-server.vsix.gz --write-out '%{http_code}' "$URL" 2>"$curl_error_log") || {
+  curl_exit=$?
+  echo "[kotlin-lsp] ERROR: download failed (HTTP status: ${http_status:-unknown}, curl exit: ${curl_exit})" >&2
+  if [ -s "$curl_error_log" ]; then
+    echo "[kotlin-lsp] curl details:" >&2
+    cat "$curl_error_log" >&2
+  fi
+  exit 1
+}
+if [ "$http_status" != 200 ]; then
+  echo "[kotlin-lsp] ERROR: download returned HTTP status ${http_status}" >&2
+  exit 1
+fi
+if [ ! -s kotlin-server.vsix.gz ]; then
+  echo "[kotlin-lsp] ERROR: download produced an empty or missing file" >&2
+  exit 1
+fi
+echo "[kotlin-lsp] Download complete (HTTP ${http_status})"
 
+echo "[kotlin-lsp] Decompressing package"
 # Decompress gzip -> .vsix
 if command -v python3 >/dev/null 2>&1; then
-  python3 - <<'PY'
+  if ! python3 - <<'PY'
 import gzip, shutil
 with gzip.open('kotlin-server.vsix.gz','rb') as src:
     with open('kotlin-server.vsix','wb') as dst:
         shutil.copyfileobj(src,dst)
 PY
+  then
+    echo "[kotlin-lsp] ERROR: downloaded file is not a valid gzip package" >&2
+    exit 1
+  fi
 else
-  gzip -d kotlin-server.vsix.gz
+  if ! gzip -d kotlin-server.vsix.gz; then
+    echo "[kotlin-lsp] ERROR: failed to decompress downloaded package" >&2
+    exit 1
+  fi
+fi
+if [ ! -s kotlin-server.vsix ]; then
+  echo "[kotlin-lsp] ERROR: decompressed package is empty or missing" >&2
+  exit 1
 fi
 
-unzip -q kotlin-server.vsix -d kotlin-server-vsix
-
+echo "[kotlin-lsp] Extracting package"
+if ! unzip -q kotlin-server.vsix -d kotlin-server-vsix; then
+  echo "[kotlin-lsp] ERROR: failed to extract kotlin-server.vsix" >&2
+  exit 1
+fi
+if [ ! -d kotlin-server-vsix/extension/server ]; then
+  echo "[kotlin-lsp] ERROR: extracted package does not contain extension/server" >&2
+  exit 1
+fi
+echo "[kotlin-lsp] Extraction complete"
 INSTALL_DIR=/home/agent/.local/share/kotlin-lsp/${VERS}
 mkdir -p "${INSTALL_DIR}"
 cp -a kotlin-server-vsix/extension/server "${INSTALL_DIR}/server"
