@@ -1,11 +1,8 @@
 ---
-Name: import_state
-Short: Import OMP/pi sessions and memory from a tarball into the sandbox
-Author: assistant
-Entry: ./import_state.sh
-Runtime: bash
-Tags: restore, omp, pi, sessions, memory
+name: import_state
+description: Import OMP/pi sessions and memory from a tarball into the sandbox.
 ---
+
 
 Purpose: Import an exported tarball produced by export_state.sh. Restores OMP and pi session/memory directories, preserves ownership where possible, and provides safety checks.
 

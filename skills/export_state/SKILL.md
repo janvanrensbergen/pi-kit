@@ -1,10 +1,6 @@
 ---
-Name: export_state
-Short: Export OMP/pi sessions and memory to a tarball in repo root
-Author: assistant
-Entry: ./export_state.sh
-Runtime: bash
-Tags: backup, omp, pi, sessions, memory
+name: export_state
+description: Export OMP/pi sessions and memory to a tarball in repo root
 ---
 
 Purpose: Export OMP and pi sessions and project-memory to a tarball placed in the repository root. Intended to run inside the sandbox (sbx). The script discovers OMP paths and optionally pi user paths and creates a timestamped tar.gz in the repo root.
