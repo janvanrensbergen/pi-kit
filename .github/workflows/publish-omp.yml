@@ -43,42 +43,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push full OMP image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: Dockerfile.omp
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ env.IMAGE }}:${{ github.sha }}
-            ${{ env.IMAGE }}:latest
-          build-args: |
-            BUILD_KOTLIN_LSP=1
-            KOTLIN_LSP_VERSION=0.0.12
-
-      - name: Extract metadata (tags, labels) for OMP sandbox image
-        id: meta-omp-image
-        uses: docker/metadata-action@v6
-        with:
-          images: ghcr.io/janvanrensbergen/omp-sandbox
-          tags: |
-            type=sha
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=semver,pattern={{version}}
-            type=raw,value=v{{raw}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-
       - name: Build and push OMP sandbox image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: Dockerfile.omp
           push: true
-          tags: ${{ steps.meta-omp-image.outputs.tags }}
-          labels: ${{ steps.meta-omp-image.outputs.labels }}
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
           platforms: linux/amd64,linux/arm64
           build-args: |
-            OMP_VERSION=18.1.14
+            OMP_VERSION=18.1.15
+            BUILD_KOTLIN_LSP=1
+            KOTLIN_LSP_VERSION=${{ env.KOTLIN_LSP_VERSION }}
+            KOTLIN_LSP_TARGET_PLATFORM=${{ env.KOTLIN_LSP_TARGET_PLATFORM }}
 
       - name: Install sbx
         run: |
