@@ -1,0 +1,82 @@
+name: publish pi-kit and sandbox image
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - "v*"
+    paths:
+      - Dockerfile
+      - .dockerignore
+      - .github/workflows/publish-pi.yml
+      - pi/**
+      - package.json
+      - skills/**
+      - themes/**
+      - prompts/**
+      - extensions/**
+      - kit/**
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish-pi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to GHCR (Docker)
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker sandbox image
+        id: meta-image
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/janvanrensbergen/pi-sandbox
+          tags: |
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+            type=raw,value=v{{raw}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Build and push sandbox image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta-image.outputs.tags }}
+          labels: ${{ steps.meta-image.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            PI_VERSION=0.84.3
+
+      - name: Install sbx
+        run: |
+          set -euo pipefail
+          archive="${RUNNER_TEMP}/docker-sbx.tar.gz"
+          curl -fsSL \
+            https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-linux-amd64.tar.gz \
+            -o "$archive"
+          echo "2ec45bc7938c20c2f406fe8cc72294ad5a954bdc047601484b89bf1a108311d4  $archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" docker-sbx/sbx
+          sudo install -m 0755 "$RUNNER_TEMP/docker-sbx/sbx" /usr/local/bin/sbx
+          sbx version
+
+      - name: Publish kit to GHCR
+        run: |
+          sbx kit push ./kit ghcr.io/janvanrensbergen/pi-kit:latest
