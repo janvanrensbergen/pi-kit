@@ -8,10 +8,10 @@ modelProviderOrder:
   - openrouter
 
 defaultProvider: github-copilot
-defaultModel: github-copilot/gpt-5-mini
+defaultModel: github-copilot/gpt-5.6-luna
 
 modelRoles:
-  default: github-copilot/gpt-5-mini:low
+  default: github-copilot/gpt-5.6-luna:low
   smol: github-copilot/mai-code-1.1-flash:low
   task: github-copilot/gpt-5.6-luna:low
   advisor: github-copilot/gpt-5-mini:low
