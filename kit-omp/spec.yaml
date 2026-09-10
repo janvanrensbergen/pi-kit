@@ -6,7 +6,7 @@ description: "Experimental Oh My Pi coding agent kit"
 
 sandbox:
   image: "ghcr.io/janvanrensbergen/omp-sandbox:latest"
-  entrypoint: [omp-entrypoint, --auto-approve]
+  entrypoint: [omp-entrypoint]
 
 permissions:
   network:
