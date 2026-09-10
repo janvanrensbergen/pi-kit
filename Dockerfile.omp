@@ -47,9 +47,3 @@ RUN curl -fsSL https://bun.sh/install | bash \
  
  RUN /home/agent/.bun/bin/bun pm cache rm 2>/dev/null || true
  
- USER root
- COPY docker/omp-entrypoint.sh /usr/local/bin/omp-entrypoint
- RUN chmod 0755 /usr/local/bin/omp-entrypoint
- USER agent
- 
-# The entrypoint starts the host IDEA MCP loopback forward before Herdr.

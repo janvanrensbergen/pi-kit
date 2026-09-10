@@ -87,8 +87,7 @@ sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
 `rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
 ships `extensions/rtk.js` into OMP's extension directory so OMP bash calls are
-rewritten through `rtk rewrite`. It starts with `[omp-entrypoint, --auto-approve]`
-so the IDEA MCP loopback forward is available.
+rewritten through `rtk rewrite`. It starts directly with `[herdr]`.
 The image provides the repository's skills, themes, prompts, and extensions through
 OMP's native resource locations. OMP 18.x has native task subagents, plan mode,
 MCP, web search/fetch, and memory backends, so `omp/config.yml` intentionally
