@@ -33,6 +33,7 @@ COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 
 USER agent
 RUN curl -fsSL https://bun.sh/install | bash \
+    && curl -fsSL https://herdr.dev/install.sh | sh \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
     && rtk init -g --agent pi
 
@@ -51,4 +52,4 @@ RUN curl -fsSL https://bun.sh/install | bash \
  RUN chmod 0755 /usr/local/bin/omp-entrypoint
  USER agent
  
-# The entrypoint starts the host IDEA MCP loopback forward before OMP.
+# The entrypoint starts the host IDEA MCP loopback forward before Herdr.
