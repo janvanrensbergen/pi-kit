@@ -34,6 +34,9 @@ COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 USER agent
 RUN curl -fsSL https://bun.sh/install | bash \
     && curl -fsSL https://herdr.dev/install.sh | sh \
+    && export HUNK_INSTALL_DIR=/home/agent/.local/bin \
+    && curl -fsSL https://hunk.dev/install.sh | sh \
+    && command -v hunk \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
     && rtk init -g --agent pi
 
