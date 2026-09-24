@@ -14,20 +14,50 @@ LABEL com.docker.sandboxes.flavor="omp"
 
 USER root
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl fd-find libstdc++6 socat unzip gzip \
+    && apt-get install -y --no-install-recommends \
+       ca-certificates \
+       chromium-browser \
+       curl \
+       fd-find \
+       libasound2t64 \
+       libatk-bridge2.0-0 \
+       libatk1.0-0 \
+       libcairo2 \
+       libcups2 \
+       libdrm2 \
+       libgbm1 \
+       libglib2.0-0 \
+       libnss3 \
+       libpango-1.0-0 \
+       libpangocairo-1.0-0 \
+       libstdc++6 \
+       libx11-xcb1 \
+       libxcomposite1 \
+       libxdamage1 \
+       libxfixes3 \
+       libxkbcommon0 \
+       libxrandr2 \
+       socat \
+       unzip \
+       gzip \
     && ln -sf /usr/bin/fdfind /usr/bin/fd \
     && RTK_INSTALL_DIR=/usr/local/bin RTK_VERSION=${RTK_VERSION} \
        sh -c 'curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh' \
+    && npm install -g agent-browser \
+    && npx --yes playwright install chromium \
+    && chromium_path="$(find /root/.cache/ms-playwright -type f -path '*/chrome-linux*/chrome' -print -quit)" \
+    && test -n "${chromium_path}" \
+    && ln -sf "${chromium_path}" /usr/local/bin/agent-browser-chromium \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer script for kotlin-lsp (user-local install + root fallback symlink)
+ENV AGENT_BROWSER_EXECUTABLE_PATH=/usr/local/bin/agent-browser-chromium
+ENV RTK_TELEMETRY_DISABLED=1
 COPY install-kotlin-lsp.sh /usr/local/bin/install-kotlin-lsp.sh
 RUN chmod 0755 /usr/local/bin/install-kotlin-lsp.sh \
     && if [ "${BUILD_KOTLIN_LSP}" = "1" ]; then \
          KOTLIN_LSP_VERSION="${KOTLIN_LSP_VERSION}" KOTLIN_LSP_TARGET_PLATFORM="${KOTLIN_LSP_TARGET_PLATFORM}" /usr/local/bin/install-kotlin-lsp.sh; \
        fi
 
-ENV RTK_TELEMETRY_DISABLED=1
 ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:${PATH}"
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 
