@@ -1,0 +1,73 @@
+# OMP sandbox bash profile
+
+# Interactive shells only.
+case $- in
+  *i*) ;;
+  *) return ;;
+esac
+
+shopt -s checkwinsize cmdhist histappend
+
+HISTCONTROL=ignoredups:erasedups
+HISTSIZE=50000
+HISTFILESIZE=100000
+HISTTIMEFORMAT='%F %T '
+PROMPT_DIRTRIM=3
+
+# Append and reload history after every command so panes stay loosely in sync.
+__omp_history_sync() {
+  history -a
+  history -n
+}
+
+# Render current git branch without spawning when outside a repo.
+__omp_git_branch() {
+  local branch
+  branch=$(git branch --show-current 2>/dev/null) || return 0
+  [ -n "$branch" ] || return 0
+  printf ' (%s)' "$branch"
+}
+
+# Compact, readable prompt: user + cwd, optional git branch, red status on failure.
+__omp_prompt() {
+  local status=$?
+  local reset='\[\e[0m\]'
+  local green='\[\e[32m\]'
+  local blue='\[\e[34m\]'
+  local yellow='\[\e[33m\]'
+  local red='\[\e[31m\]'
+  local status_segment=''
+
+  __omp_history_sync
+
+  if [ "$status" -ne 0 ]; then
+    status_segment=" ${red}[${status}]${reset}"
+  fi
+
+  PS1="${green}\u${reset}:${blue}\w${reset}${yellow}$(__omp_git_branch)${reset}${status_segment}\\$ "
+}
+
+PROMPT_COMMAND=__omp_prompt
+
+export LESS='-FRX'
+export MANPAGER='less -R'
+export GREP_COLORS='ms=01;32:mc=01;32:sl=38;5;236:cx=38;5;236:fn=35:ln=32:bn=32:se=36'
+
+alias grep='grep --color=auto'
+alias egrep='egrep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias gs='git status --short --branch'
+alias gd='git diff'
+alias gl='git log --oneline --decorate --graph -20'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+if [ -f /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion
+elif [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi

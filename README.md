@@ -87,8 +87,9 @@ sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
 `rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
 ships `extensions/rtk.js` into OMP's extension directory so OMP bash calls are
-rewritten through `rtk rewrite`. It starts directly with `[herdr]`, and Herdr is
-configured to open new panes with `/bin/bash` by default.
+rewritten through `rtk rewrite`. It starts directly with `[herdr]`, Herdr opens
+new panes with `/bin/bash` by default, and the image ships a repo-owned `.bashrc`
+with a colored prompt, git branch segment, history tuning, and shell aliases.
 OMP's native resource locations. OMP 18.x has native task subagents, plan mode,
 MCP, web search/fetch, and memory backends, so `omp/config.yml` intentionally
 uses OMP-native `task.*`, `modelRoles`, and `memory.backend` settings instead of
