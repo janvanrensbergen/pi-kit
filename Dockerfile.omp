@@ -56,6 +56,8 @@ ENV SHELL=/bin/bash
 # The copilot sbx secret is a fine-grained PAT. Copilot rejects PATs under
 # OMP's default chat identity (copilot-chat); the Copilot CLI identity accepts them.
 ENV COPILOT_INTEGRATION_ID=copilot-developer-cli
+# Hide the pi-blackhole footer status bar; compaction and memory keep running.
+ENV PI_BLACKHOLE_STATUSBAR=false
 COPY install-kotlin-lsp.sh /usr/local/bin/install-kotlin-lsp.sh
 RUN chmod 0755 /usr/local/bin/install-kotlin-lsp.sh \
     && if [ "${BUILD_KOTLIN_LSP}" = "1" ]; then \

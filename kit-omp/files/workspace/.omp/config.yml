@@ -17,6 +17,9 @@ modelRoles:
   advisor: github-copilot/gpt-5-mini:low
   slow: github-copilot/gpt-5.4:high
 
+advisor:
+  enabled: true
+
 retry:
   enabled: true
   maxRetries: 2
