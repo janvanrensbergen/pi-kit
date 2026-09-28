@@ -68,7 +68,8 @@ RUN curl -fsSL https://bun.sh/install | bash \
     && curl -fsSL https://hunk.dev/install.sh | sh \
     && command -v hunk \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
-    && rtk init -g --agent pi
+    && rtk init -g --agent pi \
+    && omp plugin install github:RockinPaul/pi-blackhole-omp
 
  # Install the repository resources into OMP's native global resource locations.
  # The OMP config below also declares these locations explicitly.
