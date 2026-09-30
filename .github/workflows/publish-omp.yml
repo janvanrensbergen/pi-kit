@@ -10,6 +10,7 @@ on:
       - omp/**
       - .github/workflows/publish-omp.yml
       - kit-omp/**
+      - kit-kotlin-lsp/**
       - skills/**
       - themes/**
       - prompts/**
@@ -55,9 +56,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           build-args: |
             OMP_VERSION=18.1.15
-            BUILD_KOTLIN_LSP=1
-            KOTLIN_LSP_VERSION=${{ env.KOTLIN_LSP_VERSION }}
-            KOTLIN_LSP_TARGET_PLATFORM=${{ env.KOTLIN_LSP_TARGET_PLATFORM }}
 
       - name: Install sbx
         run: |
@@ -69,16 +67,20 @@ jobs:
           sudo install -m 0755 "$RUNNER_TEMP/docker-sbx/sbx" /usr/local/bin/sbx
           sbx version
 
-      - name: Publish OMP kit to GHCR
+      - name: Publish OMP kits to GHCR
         run: |
           set -euo pipefail
-          for attempt in 1 2 3 4 5 6; do
-            if sbx kit push ./kit-omp ghcr.io/janvanrensbergen/omp-kit:latest; then
-              exit 0
-            fi
-            if [ "$attempt" -lt 6 ]; then
-              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
-              sleep 10
-            fi
-          done
-          exit 1
+          push_kit() {
+            for attempt in 1 2 3 4 5 6; do
+              if sbx kit push "$1" "$2"; then
+                return 0
+              fi
+              if [ "$attempt" -lt 6 ]; then
+                echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+                sleep 10
+              fi
+            done
+            return 1
+          }
+          push_kit ./kit-omp ghcr.io/janvanrensbergen/omp-kit:latest
+          push_kit ./kit-kotlin-lsp ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest

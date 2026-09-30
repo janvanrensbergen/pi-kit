@@ -1,9 +1,6 @@
 FROM docker/sandbox-templates:shell
 ARG OMP_VERSION=18.1.14
 ARG RTK_VERSION=v0.48.0
-ARG BUILD_KOTLIN_LSP=0
-ARG KOTLIN_LSP_VERSION=0.0.12
-ARG KOTLIN_LSP_TARGET_PLATFORM=linux-arm64
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
 LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
 LABEL org.opencontainers.image.version="${OMP_VERSION}"
@@ -56,12 +53,6 @@ ENV SHELL=/bin/bash
 # The copilot sbx secret is a fine-grained PAT. Copilot rejects PATs under
 # OMP's default chat identity (copilot-chat); the Copilot CLI identity accepts them.
 ENV COPILOT_INTEGRATION_ID=copilot-developer-cli
-COPY install-kotlin-lsp.sh /usr/local/bin/install-kotlin-lsp.sh
-RUN chmod 0755 /usr/local/bin/install-kotlin-lsp.sh \
-    && if [ "${BUILD_KOTLIN_LSP}" = "1" ]; then \
-         KOTLIN_LSP_VERSION="${KOTLIN_LSP_VERSION}" KOTLIN_LSP_TARGET_PLATFORM="${KOTLIN_LSP_TARGET_PLATFORM}" /usr/local/bin/install-kotlin-lsp.sh; \
-       fi
-
 ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:${PATH}"
 COPY --chown=agent:agent bash/bashrc /home/agent/.bashrc
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml

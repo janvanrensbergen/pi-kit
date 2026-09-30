@@ -1,0 +1,62 @@
+schemaVersion: "2"
+kind: mixin
+name: kotlin-lsp
+displayName: Kotlin LSP
+description: "Installs JetBrains Kotlin LSP (kotlin-server) and registers it in OMP's lsp.json"
+sourceURL: https://github.com/Kotlin/kotlin-lsp
+
+# Keep this kit limited to setup.install and permissions.network.allow so
+# `sbx kit add` can attach it to an existing sandbox (no files/, startup or setup.files).
+# To upgrade: bump VERSION and both SHA256 values (sha256 of each vspackage download).
+
+permissions:
+  network:
+    allow:
+      - marketplace.visualstudio.com
+
+setup:
+  install:
+    - user: "1000"
+      description: Install kotlin-server for the sandbox architecture and register it with OMP
+      command: |
+        set -eu
+        VERSION=0.0.12
+        case "$(dpkg --print-architecture)" in
+          amd64) PLATFORM=linux-x64;   SHA256=a3a61ad808d3b19fc44bc4ff0bced7226acc56e0bb637b6c879e30bebbb6a0ba ;;
+          arm64) PLATFORM=linux-arm64; SHA256=fe88307a0c8b0dc3925ae418d307a9988bfef63924f46fc4f6b0373d46ef6eaf ;;
+          *) echo "[kotlin-lsp] unsupported architecture: $(dpkg --print-architecture)" >&2; exit 1 ;;
+        esac
+        INSTALL_DIR="$HOME/.local/share/kotlin-lsp/$VERSION"
+        TMP=$(mktemp -d)
+        trap 'rm -rf "$TMP"' EXIT
+
+        echo "[kotlin-lsp] Downloading kotlin-server $VERSION for $PLATFORM"
+        curl --proto '=https' --tlsv1.2 -fsSL -o "$TMP/kotlin-server.vsix.gz" \
+          "https://marketplace.visualstudio.com/_apis/public/gallery/publishers/JetBrains/vsextensions/kotlin-server/$VERSION/vspackage?targetPlatform=$PLATFORM"
+        echo "$SHA256  $TMP/kotlin-server.vsix.gz" | sha256sum -c -
+
+        # The Marketplace serves the .vsix (a zip) gzip-compressed.
+        gzip -dc "$TMP/kotlin-server.vsix.gz" > "$TMP/kotlin-server.vsix"
+        unzip -q "$TMP/kotlin-server.vsix" 'extension/server/*' -d "$TMP/vsix"
+
+        rm -rf "$INSTALL_DIR"
+        mkdir -p "$INSTALL_DIR" "$HOME/.local/bin" "$HOME/.omp/agent"
+        mv "$TMP/vsix/extension/server" "$INSTALL_DIR/server"
+        chmod +x "$INSTALL_DIR/server/bin/intellij-server"
+        ln -sfn "$INSTALL_DIR/server/bin/intellij-server" "$HOME/.local/bin/kotlin-lsp"
+
+        cat > "$HOME/.omp/agent/lsp.json" <<'JSON'
+        {
+          "servers": {
+            "kotlin-lsp": {
+              "command": "kotlin-lsp",
+              "args": ["--stdio"],
+              "fileTypes": [".kt", ".kts"],
+              "languageId": "kotlin",
+              "rootMarkers": ["settings.gradle.kts", "build.gradle.kts", "pom.xml", ".git", ".idea"],
+              "warmupTimeoutMs": 30000
+            }
+          }
+        }
+        JSON
+        echo "[kotlin-lsp] kotlin-server $VERSION installed to $INSTALL_DIR"

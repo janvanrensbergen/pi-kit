@@ -97,6 +97,26 @@ Pi's top-level `packages` extension list. OMP's built-in configuration and
 extension APIs are evolving, so compatibility gaps are possible; the stable Pi
 kit is unchanged and remains the default.
 
+#### Kotlin LSP mixin
+
+Kotlin LSP (JetBrains `kotlin-server`, which bundles its own JDK) is not baked
+into the OMP image. Add it per sandbox with the `kotlin-lsp` mixin kit
+(`kit-kotlin-lsp/spec.yaml`, published to
+`ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest`):
+
+```bash
+sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest \
+  --kit ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest
+# or attach to an existing sandbox (recreates it, keeps packages and history):
+sbx kit add <sandbox> ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest
+```
+
+At sandbox creation it downloads the ~370 MB Marketplace package for the
+sandbox architecture from `marketplace.visualstudio.com`, verifies its pinned
+sha256, installs it under `~/.local/share/kotlin-lsp/<version>`, links
+`~/.local/bin/kotlin-lsp`, and writes `~/.omp/agent/lsp.json`. To upgrade, bump
+`VERSION` and both `SHA256` values in `kit-kotlin-lsp/spec.yaml`.
+
 ## What's inside
 
 | Path | Purpose |
@@ -106,6 +126,7 @@ kit is unchanged and remains the default.
 | `Dockerfile.omp` | Builds the Oh My Pi sandbox image (published to `ghcr.io/janvanrensbergen/omp-sandbox`) |
 | `kit/spec.yaml` | Canonical Pi sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/pi-kit`) |
 | `kit-omp/spec.yaml` | Canonical OMP sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/omp-kit`) |
+| `kit-kotlin-lsp/spec.yaml` | Kotlin LSP mixin kit for the OMP sandbox (published to `ghcr.io/janvanrensbergen/kotlin-lsp-kit`) |
 | `pi/settings.json` | Pi runtime preferences, incl. the `packages` list of extensions to install |
 | `omp/config.yml` | Oh My Pi runtime resource-path configuration |
 | `.global-settings.example.json` | Snapshot of my global `~/.pi/agent/settings.json` |
