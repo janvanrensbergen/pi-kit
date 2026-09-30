@@ -45,7 +45,6 @@ permissions:
       - 172.16.0.0/12
       - 192.168.0.0/16
       - 169.254.169.254/32
-      - telemetry.agent-browser.dev
 
 credentials:
   - service: anthropic

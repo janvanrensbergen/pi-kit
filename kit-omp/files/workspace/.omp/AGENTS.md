@@ -185,9 +185,6 @@ Installed extension capabilities:
   - `npm:pi-mcp-adapter`: `mcp` for single calls and `mcpScript` for multi-call
        workflows; consult the `mcp-scripting` skill first.
   - `npm:pi-web-access`: `web_search` and `fetch_content`.
-  - Kit skill `agent-browser`: interactive browser automation through the
-    `agent-browser` CLI; use it only when ordinary search/fetch cannot perform
-    the required browser interaction.
 
   Use `/subagents-doctor` when delegation appears misconfigured. Use
   `/subagents-guide [topic]` when installed-version behavior is unclear. Do not
