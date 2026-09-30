@@ -92,10 +92,10 @@ new panes with `/bin/bash` by default, and the image ships a repo-owned `.bashrc
 with a colored prompt, git branch segment, history tuning, and shell aliases.
 OMP's native resource locations. OMP 18.x has native task subagents, plan mode,
 MCP, web search/fetch, and memory backends, so `omp/config.yml` intentionally
-uses OMP-native `task.*`, `modelRoles`, and `memory.backend` settings instead of
-Pi's top-level `packages` extension list. OMP's built-in configuration and
-extension APIs are evolving, so compatibility gaps are possible; the stable Pi
-kit is unchanged and remains the default.
+uses OMP-native `task.*`, `modelRoles`, `memory.backend`, and `autolearn`
+settings instead of Pi's top-level `packages` extension list. OMP's built-in
+configuration and extension APIs are evolving, so compatibility gaps are
+possible; the stable Pi kit is unchanged and remains the default.
 
 #### Kotlin LSP mixin
 

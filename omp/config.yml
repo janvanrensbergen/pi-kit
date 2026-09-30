@@ -56,13 +56,17 @@ task:
   maxEffort: high
   agentModelOverrides:
     task: github-copilot/gpt-5.5
-    oracle: github-copilot/claude-opus-4.8
 
 # Enable OMP's local memory summary backend. Other native choices include
 # `mnemopi`, `hindsight`, and `sharpshooter` when their backing services or
 # dependencies are desired.
 memory:
   backend: local
+
+# Autolearn exposes `learn` (lessons into the local memory backend) and
+# `manage_skill` (managed skills under ~/.omp/agent/managed-skills).
+autolearn:
+  enabled: true
 
 extensions:
   - /home/agent/.omp/agent/extensions

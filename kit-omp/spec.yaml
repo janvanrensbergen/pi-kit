@@ -39,6 +39,13 @@ permissions:
       - api.tavily.com
       - api.firecrawl.dev
       - r.jina.ai
+      # ketch backends: keyless search, OSS code search, library docs.
+      - search.parallel.ai
+      - api.keenable.ai
+      - api.you.com
+      - mcp.grep.app
+      - sourcegraph.com
+      - context7.com
       - malware-list.aikido.dev
     deny:
       - 10.0.0.0/8

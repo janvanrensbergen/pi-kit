@@ -80,6 +80,9 @@ mcp:
 memory:
   backend: local
 
+autolearn:
+  enabled: true
+
 task:
   agentModelOverrides:
     scout:
