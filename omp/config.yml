@@ -14,7 +14,16 @@ prompts:
 themes:
   - /home/agent/.omp/agent/themes
 
-theme: dark
+# Pre-answer the first-run setup wizard (setupVersion = CURRENT_SETUP_VERSION in
+# @oh-my-pi/pi-tui/setup/setup-version.ts). Login and default model are skipped.
+setupVersion: 2
+symbolPreset: unicode
+composer:
+  shape: pi
+# "Match terminal": Titanium in dark terminals, Light in light terminals.
+theme:
+  dark: titanium
+  light: light
 
 defaultProvider: github-copilot
 defaultModel: github-copilot/gpt-5.5
