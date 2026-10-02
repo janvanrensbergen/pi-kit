@@ -1,4 +1,4 @@
-FROM docker/sandbox-templates:shell
+FROM docker/sandbox-templates:shell-docker
 ARG OMP_VERSION=18.1.14
 ARG RTK_VERSION=v0.48.0
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
