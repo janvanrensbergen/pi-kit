@@ -33,6 +33,7 @@ ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:${PATH}"
 COPY --chown=agent:agent bash/bashrc /home/agent/.bashrc
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 COPY --chown=agent:agent herdr/config.toml /home/agent/.config/herdr/config.toml
+COPY --chown=agent:agent omp/gcx/config.yaml /home/agent/.config/gcx/config.yaml
 
 USER agent
 RUN curl -fsSL https://bun.sh/install | bash \
@@ -40,6 +41,8 @@ RUN curl -fsSL https://bun.sh/install | bash \
     && export HUNK_INSTALL_DIR=/home/agent/.local/bin \
     && curl -fsSL https://hunk.dev/install.sh | sh \
     && curl -fsSL https://ketch.run/install | sh \
+    && curl -fsSL https://raw.githubusercontent.com/grafana/gcx/main/scripts/install.sh | sh \
+    && command -v gcx \
     && command -v hunk \
     && command -v ketch \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \

@@ -1,0 +1,10 @@
+version: 1
+stacks:
+  default:
+    grafana:
+      server: https://monitoring.devops.athumi.net
+      org-id: 1
+contexts:
+  default:
+    stack: default
+current-context: default
