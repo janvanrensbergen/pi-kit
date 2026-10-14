@@ -1,6 +1,7 @@
 FROM docker/sandbox-templates:shell-docker
-ARG OMP_VERSION=18.1.14
+ARG OMP_VERSION=18.10.4
 ARG RTK_VERSION=v0.48.0
+ARG OHMYJEV_VERSION=0.12.0
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
 LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
 LABEL org.opencontainers.image.version="${OMP_VERSION}"
@@ -47,7 +48,9 @@ RUN curl -fsSL https://bun.sh/install | bash \
     && command -v ketch \
     && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
     && rtk init -g --agent pi \
-    && omp plugin install github:RockinPaul/pi-blackhole-omp
+    && omp plugin install github:RockinPaul/pi-blackhole-omp \
+    && omp plugin install ohmyjev@${OHMYJEV_VERSION} \
+    && omp plugin config set ohmyjev writeGate false
 
  # Install the repository resources into OMP's native global resource locations.
  # The OMP config below also declares these locations explicitly.

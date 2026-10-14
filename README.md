@@ -19,7 +19,7 @@ Start it with:
 sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
 ```
 
-The OMP image pins `@oh-my-pi/pi-coding-agent` 18.1.14, installs Bun, runs
+The OMP image pins `@oh-my-pi/pi-coding-agent` 18.10.4, installs Bun, runs
 `rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
 ships `extensions/rtk.js` into OMP's extension directory so OMP bash calls are
 rewritten through `rtk rewrite`. It starts directly with `[herdr]`, Herdr opens
@@ -31,6 +31,21 @@ uses OMP-native `task.*`, `modelRoles`, `memory.backend`, and `autolearn`
 settings. OMP's built-in
 configuration and extension APIs are evolving, so compatibility gaps are
 possible.
+
+#### ohmyjev (Jev guardrails)
+
+The image installs the `ohmyjev` OMP plugin (version pinned by `OHMYJEV_VERSION`
+in the `Dockerfile`): Jev-judged bash and exfil gates, injection screening, stuck
+and done checks, output trimming, skill picking, per-turn routing, and the
+`find_code`/`ask_jev` tools. It finds its key in `TYPESAFE_API_KEY`, then
+`OPENROUTER_API_KEY` (the kit injects the latter), and fails open when Jev is
+slow, unsure, or unreachable. Background: `docs/jev-research.md`.
+
+The image sets `writeGate false`. ohmyjev 0.12.0's write gate refuses every
+`xd://` target as "outside the repo and allowPaths" (`allowPaths` cannot
+whitelist a URL scheme), which blocks all tool devices (`xd://lsp`,
+`xd://ast_edit`, MCP tools, and so on). Re-enable it once upstream exempts
+`xd://`.
 
 #### Kotlin LSP mixin
 

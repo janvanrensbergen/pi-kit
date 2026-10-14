@@ -35,6 +35,7 @@ showCacheMissNotices: true
 modelRoles:
   task: github-copilot/gpt-5.5
   smol: github-copilot/mai-code-1.1-flash
+  judge: openrouter/~typesafe/jev-latest
 
 thinkingBudget:
   low: 2048

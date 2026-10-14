@@ -16,6 +16,7 @@ modelRoles:
   task: github-copilot/claude-sonnet-5.5:low
   advisor: github-copilot/claude-sonnet-5:low
   slow: github-copilot/claude-opus-4.8:high
+  judge: openrouter/~typesafe/jev-latest
 
 advisor:
   enabled: true
