@@ -4,18 +4,15 @@
 .idea
 .DS_Store
 
-# local project-level pi config (never shipped inside the baked kit image)
-.pi
-
 # build artifacts
 node_modules
 npm-debug.log*
 
-# files not needed inside the baked kit image
+# files not needed inside the image
 Dockerfile
 .dockerignore
-install.sh
 spec.yaml
-kit
+kit-omp
+kit-kotlin-lsp
 *.zip
 .github
