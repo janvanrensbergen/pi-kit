@@ -20,10 +20,10 @@ setup:
       description: Install kotlin-server for the sandbox architecture and register it with OMP
       command: |
         set -eu
-        VERSION=0.0.12
+        VERSION=0.0.27
         case "$(dpkg --print-architecture)" in
-          amd64) PLATFORM=linux-x64;   SHA256=a3a61ad808d3b19fc44bc4ff0bced7226acc56e0bb637b6c879e30bebbb6a0ba ;;
-          arm64) PLATFORM=linux-arm64; SHA256=fe88307a0c8b0dc3925ae418d307a9988bfef63924f46fc4f6b0373d46ef6eaf ;;
+          amd64) PLATFORM=linux-x64;   SHA256=73db02fd9dca93fe1365396454d3734a5bb2da512173cb969546fe63ef7e769c ;;
+          arm64) PLATFORM=linux-arm64; SHA256=39eac92bd75665305fcf37020fa6377cae575d21b39c881c95fa6fa779b3161f ;;
           *) echo "[kotlin-lsp] unsupported architecture: $(dpkg --print-architecture)" >&2; exit 1 ;;
         esac
         INSTALL_DIR="$HOME/.local/share/kotlin-lsp/$VERSION"
