@@ -27,6 +27,8 @@ permissions:
       - api.githubcopilot.com
       - api.individual.githubcopilot.com
       - api.business.githubcopilot.com
+      - api.enterprise.githubcopilot.com
+      - copilot.github.com
       - copilot-proxy.githubusercontent.com
       - objects.githubusercontent.com
       - raw.githubusercontent.com
@@ -70,19 +72,41 @@ credentials:
         - domain: openrouter.ai
           header: Authorization
           format: "Bearer %s"
+  - service: github
+    apiKey:
+      # Read-only PAT for `gh`/`git`/the GitHub REST and raw-content APIs.
+      # Matches the upstream docker/sbx-kits-contrib `copilot` kit's `github`
+      # credential (name + github.com/Bearer): api.github.com covers `gh`
+      # and Copilot's own user-management calls, so `copilot` below does not
+      # also inject into api.github.com — avoids two services racing the
+      # same domain with different tokens.
+      name: GH_TOKEN
+      proxyManaged: true
+      inject:
+        - domain: api.github.com
+          header: Authorization
+          format: Bearer %s
+        - domain: github.com
+          header: Authorization
+          format: Bearer %s
+        - domain: objects.githubusercontent.com
+          header: Authorization
+          format: Bearer %s
+        - domain: raw.githubusercontent.com
+          header: Authorization
+          format: Bearer %s
   - service: copilot
     apiKey:
       # Copilot CLI prioritizes COPILOT_GITHUB_TOKEN over GH_TOKEN/GITHUB_TOKEN,
       # so this can hold a separate, fine-grained PAT (copilot request scope)
       # without affecting the broader github secret used for gh/git access.
       # https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-cli
+      # Deliberately does NOT inject into api.github.com (see `github` above):
+      # only the Copilot-suggestions API domains need this token.
       name: COPILOT_GITHUB_TOKEN
       proxyManaged: true
       inject:
         # https://github.blog/changelog/2026-02-13-network-configuration-changes-for-copilot-coding-agent/
-        - domain: api.github.com
-          header: Authorization
-          format: Bearer %s
         - domain: api.business.githubcopilot.com # Copilot Business
           header: Authorization
           format: Bearer %s
