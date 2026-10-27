@@ -23,21 +23,54 @@ permissions:
   packages: write
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.filter.outputs.image }}
+      kit_omp: ${{ steps.filter.outputs.kit_omp }}
+      kit_kotlin_lsp: ${{ steps.filter.outputs.kit_kotlin_lsp }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            image:
+              - Dockerfile
+              - omp/**
+              - skills/**
+              - themes/**
+              - prompts/**
+              - extensions/**
+              - .github/workflows/publish-omp.yml
+            kit_omp:
+              - kit-omp/**
+            kit_kotlin_lsp:
+              - kit-kotlin-lsp/**
+
   publish-omp:
+    needs: changes
     runs-on: ubuntu-latest
     env:
       IMAGE: ghcr.io/janvanrensbergen/omp-sandbox
+      # On a push to main, only rebuild/republish what actually changed. A
+      # tag push or GitHub release always does everything, so a cut release
+      # is fully reproducible regardless of which paths last touched main.
+      FORCE_ALL: ${{ github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
       - name: Set up QEMU
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true'
         uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true'
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR (Docker)
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -45,6 +78,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push OMP sandbox image
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -58,6 +92,7 @@ jobs:
             OMP_VERSION=18.1.15
 
       - name: Install sbx
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true'
         run: |
           set -euo pipefail
           archive="${RUNNER_TEMP}/docker-sbx.tar.gz"
@@ -67,20 +102,33 @@ jobs:
           sudo install -m 0755 "$RUNNER_TEMP/docker-sbx/sbx" /usr/local/bin/sbx
           sbx version
 
-      - name: Publish OMP kits to GHCR
+      - name: Publish kit-omp to GHCR
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_omp == 'true'
         run: |
           set -euo pipefail
-          push_kit() {
-            for attempt in 1 2 3 4 5 6; do
-              if sbx kit push "$1" "$2"; then
-                return 0
-              fi
-              if [ "$attempt" -lt 6 ]; then
-                echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
-                sleep 10
-              fi
-            done
-            return 1
-          }
-          push_kit ./kit-omp ghcr.io/janvanrensbergen/omp-kit:latest
-          push_kit ./kit-kotlin-lsp ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest
+          for attempt in 1 2 3 4 5 6; do
+            if sbx kit push ./kit-omp ghcr.io/janvanrensbergen/omp-kit:latest; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+              sleep 10
+            fi
+          done
+          exit 1
+
+      - name: Publish kit-kotlin-lsp to GHCR
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true'
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if sbx kit push ./kit-kotlin-lsp ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+              sleep 10
+            fi
+          done
+          exit 1
+
