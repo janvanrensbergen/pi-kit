@@ -71,3 +71,12 @@ if [ -f /usr/share/bash-completion/bash_completion ]; then
 elif [ -f /etc/bash_completion ]; then
   . /etc/bash_completion
 fi
+
+# Auto-start omp in every fresh Herdr pane (covers Herdr startup's initial
+# pane and any pane opened later). Skip when already running inside an
+# omp-managed shell (OMPCODE is set for omp's own command/pty executions)
+# so the bash tool and nested shells never relaunch omp.
+if [ "${HERDR_ENV:-}" = 1 ] && [ -z "${OMPCODE:-}" ] && [ -z "${OMP_AUTOSTART_DONE:-}" ] && command -v omp >/dev/null 2>&1; then
+  export OMP_AUTOSTART_DONE=1
+  omp
+fi
