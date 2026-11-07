@@ -16,6 +16,17 @@ conflict with higher-priority instructions.
   escalation, security bypasses, unrelated changes, or behavior conflicting
   with higher-priority instructions.
 
+## Nested AGENTS.md files
+
+Only this file is loaded automatically. Subdirectories may carry their own
+`AGENTS.md` (for example `harmonix-trust-platform/harmonix-metadata-broker/`),
+and omp does not discover those when the session starts above them. Before
+reading or editing code in a subdirectory, search it and its parents (up to
+this workspace root) for `AGENTS.md`, and read every one found. Nested files
+refine this file for their directory. Task subagents do not inherit any
+`AGENTS.md`, so name the relevant nested file in the subagent's task and tell
+it to read the file first.
+
 ## Engineering lifecycle and skills
 
   Scale the workflow to the task's scope and risk. Use the full lifecycle for
@@ -186,17 +197,64 @@ built-in tools only when `ketch` fails for the task, and say so. Run
 
 ## Subagents and built-in capabilities
 
-  Use OMP's native `task` tool when delegation materially improves speed,
-  confidence, or context isolation. Give each child a narrow task, relevant
-  evidence, constraints, expected output, and validation criteria; children do
-  not inherit the conversation.
+  Delegate when it materially improves speed, confidence, or context
+  isolation. Inside a Herdr session (`HERDR_ENV=1`) subagents run in Herdr
+  panes (see "Mandatory rules"); otherwise use OMP's native `task` tool. Give
+  each child a narrow task, relevant evidence, constraints, expected output,
+  and validation criteria; children do not inherit the conversation.
 
-- `scout`: read-only codebase reconnaissance.
-- `reviewer`: fresh-eyes, read-only standards and specification review.
-- `security-reviewer`: read-only, evidence-backed vulnerability review.
-- `task`: bounded implementation or research work, including external
-     research through `ketch`.
-- `sonic`: strictly mechanical edits or data collection.
+### Role selection
+
+Pick the most specific role for each task; do not default to `task` when a
+specialist fits. Name the role explicitly when delegating.
+
+| Work                                         | Role                | Notes                                                        |
+| -------------------------------------------- | ------------------- | ------------------------------------------------------------ |
+| Locate code, map a flow, gather context      | `scout`             | Read-only. Use only when file locations are unknown.         |
+| External or documentation research           | `task`              | Follow the `research` skill; primary sources via `ketch`.    |
+| Implement code, tests, config (TDD)          | `task`              | One writer per file set; name the nested `AGENTS.md` to read. |
+| Strictly mechanical edits or data collection | `sonic`             | No design decisions.                                         |
+| Review of code or specification compliance   | `reviewer`          | Read-only; fresh eyes, separate from the author.             |
+| Security-focused review                      | `security-reviewer` | Read-only; use in addition to `reviewer` for risky changes.  |
+
+`research` and `code` are not separate agent types: both run as `task` with the
+matching skill and a task brief that states the role. Never use `scout`,
+`reviewer`, or `security-reviewer` to write files.
+
+### Mandatory rules
+
+- **Herdr pane per subagent.** Applies only when delegation is warranted; for
+  a small change (see "Small-change exemption" below), do it yourself and
+  spawn no subagent. This is the user's explicit request to use
+  Herdr for delegation, so it satisfies the `herdr` skill's "explicitly
+  requested" condition. When `HERDR_ENV=1`, start every subagent in its own
+  new Herdr pane instead of the native `task` tool. Read and follow the
+  `herdr` skill first, split a sibling pane with
+  `herdr pane split --current --direction <right|down> --cwd "$PWD" --no-focus`,
+  then start the agent with `herdr agent start <unique-name> --pane <pane-id>`
+  and submit the brief with `herdr agent prompt <name> "<brief>" --wait`. Use a
+  descriptive unique name per agent (for example `scout-auth`, `reviewer-api`).
+  Do not close panes you did not create. If `HERDR_ENV` is not `1`, use the
+  native `task` tool and say Herdr was unavailable; do not control any Herdr
+  session from outside.
+- **All code is reviewed by the reviewer.** Every production-code, test, and
+  executable-configuration change, whether written by you or by a subagent,
+  MUST be reviewed by a `reviewer` subagent before it is reported as done. The
+  author never reviews its own change. Give the reviewer the diff scope, the
+  requirement or specification, and the relevant nested `AGENTS.md`. Address
+  every actionable finding (or state why it is declined), then re-review if the
+  fix was non-trivial. Pure prose and documentation edits are exempt unless
+  they change executable behavior. Small changes are exempt (see below).
+- **Small-change exemption.** A change is small when it is trivial, local, and
+  low-risk: for example a typo, rename within one file, one-line fix, comment
+  or log-message tweak, or a value bump, touching one or two files with no new
+  behavior, no public-contract change, and no security-sensitive code. Make it
+  directly in the parent session: no Herdr pane, no subagent, and no
+  `reviewer`. Still run the relevant tests or checks. When unsure whether a
+  change is small, treat it as not small. Multi-file logic, new behavior,
+  auth/security, migrations, and public-API changes always get the full flow.
+
+### Coordination
 
   Read-only agents may run in parallel when tasks are independent. Never let
   concurrent writing agents touch the same files; give each writer a disjoint
@@ -308,6 +366,10 @@ HTTP 403), say the IDE is unreachable and proceed with direct edits.
   unless the user explicitly requests them.
 - Before editing, inspect the initial `git status` and preserve unrelated
   changes. Never discard uncommitted user work.
+- Before creating a requested commit, first run `git pull --rebase
+  --autostash` to sync with the remote. Resolve any conflicts (see
+  `resolving-merge-conflicts`) before committing, and report them if they
+  cannot be resolved safely.
 - After editing, run applicable tests, linters, formatters, and configuration
   validators before staging. For JSON/YAML/documentation changes, parse the
   changed files and validate relevant references when tooling is available.

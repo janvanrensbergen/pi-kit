@@ -13,13 +13,18 @@ defaultModel: github-copilot/claude-sonnet-5.5:medium
 modelRoles:
   default: github-copilot/claude-sonnet-5.5:medium
   smol: github-copilot/claude-haiku-5.5
-  task: github-copilot/claude-sonnet-5.5:low
+  task: github-copilot/claude-haiku-5.5
   advisor: github-copilot/claude-sonnet-5:low
   slow: github-copilot/claude-opus-4.8:high
   judge: openrouter/~typesafe/jev-latest
 
 advisor:
-  enabled: true
+  enabled: false
+
+providers:
+  cacheWarming: off
+
+showTokenUsage: true
 
 retry:
   enabled: true
@@ -81,7 +86,7 @@ memory:
   backend: local
 
 autolearn:
-  enabled: true
+  enabled: false
 
 task:
   agentModelOverrides:
@@ -101,7 +106,7 @@ task:
       - openrouter/anthropic/claude-sonnet-5:low
 
     task:
-      - github-copilot/claude-sonnet-5.5:low
+      - github-copilot/claude-haiku-5.5
       - github-copilot/gpt-5.6-luna:low
       - github-copilot/mai-code-1.1-flash:low
       - github-copilot/gpt-5-mini:low
@@ -109,9 +114,22 @@ task:
       - openrouter/z-ai/glm-5.3:low
 
     security-reviewer:
-      - github-copilot/claude-opus-4.8:high
-      - github-copilot/gpt-5.4:high
+      - github-copilot/claude-sonnet-5.5:high
       - github-copilot/gpt-5.6-sol:high
+      - github-copilot/claude-opus-4.8:high
       - openrouter/anthropic/claude-opus-4.8:high
       - openrouter/z-ai/glm-5.3:high
 
+    sonic:
+      - github-copilot/mai-code-1.1-flash:low
+      - github-copilot/gpt-5.6-luna:low
+      - github-copilot/gpt-5-mini:low
+      - openrouter/qwen/qwen3.7-flash:low
+      - openrouter/deepseek/deepseek-v4-flash-0731:low
+      - openrouter/nex-agi/nex-n2.5-mini:free
+
+
+tools:
+  restrictedFolders:
+    # Acceptance scenarios are human-owned: every access needs explicit approval (see the broker AGENTS.md).
+    - harmonix-trust-platform/harmonix-metadata-broker/app/src/acceptanceTest/kotlin/eu/athumi/harmonix/metadatabroker/acceptance/scenarios
