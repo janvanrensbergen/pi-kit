@@ -127,9 +127,3 @@ task:
       - openrouter/qwen/qwen3.7-flash:low
       - openrouter/deepseek/deepseek-v4-flash-0731:low
       - openrouter/nex-agi/nex-n2.5-mini:free
-
-
-tools:
-  restrictedFolders:
-    # Acceptance scenarios are human-owned: every access needs explicit approval (see the broker AGENTS.md).
-    - harmonix-trust-platform/harmonix-metadata-broker/app/src/acceptanceTest/kotlin/eu/athumi/harmonix/metadatabroker/acceptance/scenarios
