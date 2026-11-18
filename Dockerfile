@@ -62,7 +62,7 @@ RUN curl -fsSL https://bun.sh/install | bash \
  # Blackhole global settings: footer status bar off (compaction and memory keep running).
  COPY --chown=agent:agent omp/pi-blackhole-config.json /home/agent/.omp/agent/pi-blackhole/pi-blackhole-config.json
  # Herdr's omp integration needs ~/.omp/agent/extensions, so install it after the COPY above.
- RUN herdr integration install omp
+ RUN herdr integration install omp && herdr plugin install --yes cloudmanic/herdr-plus
  
  RUN /home/agent/.bun/bin/bun pm cache rm 2>/dev/null || true
  
