@@ -1,7 +1,7 @@
 FROM docker/sandbox-templates:shell-docker
-ARG OMP_VERSION=18.10.4
+ARG OMP_VERSION=18.22.2
 ARG RTK_VERSION=v0.48.0
-ARG OHMYJEV_VERSION=0.12.0
+ARG OHMYJEV_VERSION=0.14.0
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
 LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
 LABEL org.opencontainers.image.version="${OMP_VERSION}"
