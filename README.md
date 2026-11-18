@@ -36,6 +36,62 @@ default models. Add a provider to a running sandbox with
 `sbx kit add <sandbox> <ref>` only if the sbx version supports credential
 mixins there (unverified).
 
+#### Zsh helper
+
+A zsh function that creates (or reattaches to) a per-directory sandbox with the
+Copilot and OpenRouter mixins by default. Add more kits with `--kit REF`,
+Kotlin LSP with `-k`, and extra static MCPs with `--mcp NAME`. Kits and MCPs
+are fixed at sandbox creation, so options are ignored for an existing sandbox.
+
+```zsh
+.omp() {
+    local image=ghcr.io/janvanrensbergen/omp-kit:latest
+    local -a kotlin kit_opts mcp_opts help
+    local -a kits=(
+        ghcr.io/janvanrensbergen/copilot-kit:latest
+        ghcr.io/janvanrensbergen/openrouter-kit:latest
+    )
+    local -a mcps=(idea-stream atlassian) create_args=()
+    local i
+
+    zparseopts -D -F -K -- \
+        k=kotlin -kotlin=kotlin \
+        -kit+:=kit_opts \
+        -mcp+:=mcp_opts \
+        h=help -help=help || return 1
+
+    if (( $#help )); then
+        print -r -- "usage: .omp [-k|--kotlin] [--kit REF]... [--mcp NAME]... [name]"
+        print -r -- "default kits: copilot, openrouter (anthropic: --kit ghcr.io/janvanrensbergen/anthropic-kit:latest)"
+        return 0
+    fi
+
+    # zparseopts stores option/value pairs; keep the values (strip "=" from --opt=value).
+    for (( i = 2; i <= $#kit_opts; i += 2 )); do kits+=("${kit_opts[i]#=}"); done
+    for (( i = 2; i <= $#mcp_opts; i += 2 )); do mcps+=("${mcp_opts[i]#=}"); done
+    (( $#kotlin )) && kits+=(ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest)
+
+    # Drop duplicates (e.g. --kit copilot-kit given explicitly), keep order.
+    kits=("${(@u)kits}")
+    mcps=("${(@u)mcps}")
+
+    local name="${1:-${PWD:t}-omp${kotlin:+-kt}}"
+
+    if sbx list 2>/dev/null |
+        awk -v name="$name" '$1 == name { found = 1 } END { exit !found }'
+    then
+        # Existing sandbox: kits and static MCPs are fixed at creation.
+        (( $#kit_opts + $#mcp_opts + $#kotlin )) &&
+            print -u2 -- ".omp: '$name' exists; ignoring --kit/--mcp/--kotlin"
+        sbx run "$image" --name "$name"
+    else
+        for i in "${kits[@]}"; do create_args+=(--kit "$i"); done
+        for i in "${mcps[@]}"; do create_args+=(--static-mcp "$i"); done
+        sbx run "$image" --name "$name" "${create_args[@]}"
+    fi
+}
+```
+
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.10.4, installs Bun, runs
 `rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
 ships `extensions/rtk.js` into OMP's extension directory so OMP bash calls are
