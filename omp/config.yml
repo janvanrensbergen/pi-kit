@@ -16,7 +16,12 @@ themes:
 
 # Pre-answer the first-run setup wizard (setupVersion = CURRENT_SETUP_VERSION in
 # @oh-my-pi/pi-tui/setup/setup-version.ts). Login and default model are skipped.
-setupVersion: 2
+setupVersion: 3
+# Setup wizard's update question: always update automatically in the background.
+update:
+  auto: true
+# Resume the most recent session in the cwd instead of starting fresh.
+autoResume: true
 symbolPreset: unicode
 composer:
   shape: pi
