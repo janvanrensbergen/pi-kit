@@ -1,0 +1,20 @@
+schemaVersion: "2"
+kind: mixin
+name: openrouter
+displayName: OpenRouter
+description: "OpenRouter API access for the OMP sandbox: egress and proxy-managed OPENROUTER_API_KEY (also used by ohmyjev/Jev)"
+
+permissions:
+  network:
+    allow:
+      - openrouter.ai
+
+credentials:
+  - service: openrouter
+    apiKey:
+      name: OPENROUTER_API_KEY
+      proxyManaged: true
+      inject:
+        - domain: openrouter.ai
+          header: Authorization
+          format: "Bearer %s"

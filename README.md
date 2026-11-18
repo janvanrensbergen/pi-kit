@@ -12,12 +12,29 @@ tags/releases:
 - `ghcr.io/janvanrensbergen/omp-sandbox`: sandbox image built from `Dockerfile`
 - `ghcr.io/janvanrensbergen/omp-kit:latest`: sbx kit from `kit-omp/spec.yaml`
 - `ghcr.io/janvanrensbergen/kotlin-lsp-kit:latest`: Kotlin LSP mixin from `kit-kotlin-lsp/spec.yaml`
+- `ghcr.io/janvanrensbergen/anthropic-kit:latest`: Anthropic provider mixin from `kit-anthropic/spec.yaml`
+- `ghcr.io/janvanrensbergen/openrouter-kit:latest`: OpenRouter provider mixin from `kit-openrouter/spec.yaml`
+- `ghcr.io/janvanrensbergen/copilot-kit:latest`: GitHub Copilot provider mixin from `kit-copilot/spec.yaml`
 
-Start it with:
+Model providers are separate mixin kits. The base `omp-kit` carries only the
+provider-neutral `github` credential (`GH_TOKEN`) and general egress. Each
+provider mixin adds its own egress domains and proxy-managed API key
+(`ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `COPILOT_GITHUB_TOKEN`). Select any
+combination with repeated `--kit` flags:
 
 ```bash
-sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest
+sbx run omp --kit ghcr.io/janvanrensbergen/omp-kit:latest \
+  --kit ghcr.io/janvanrensbergen/copilot-kit:latest \
+  --kit ghcr.io/janvanrensbergen/openrouter-kit:latest \
+  --kit ghcr.io/janvanrensbergen/anthropic-kit:latest
 ```
+
+The workspace config (`kit-omp/files/workspace/.omp/config.yml`) defaults to
+`github-copilot` models and uses `openrouter` for the Jev judge role, so those
+two mixins match the shipped defaults; with other combinations, change the
+default models. Add a provider to a running sandbox with
+`sbx kit add <sandbox> <ref>` only if the sbx version supports credential
+mixins there (unverified).
 
 The OMP image pins `@oh-my-pi/pi-coding-agent` 18.10.4, installs Bun, runs
 `rtk init -g --agent pi` for RTK's currently released Pi-compatible setup, and
@@ -74,6 +91,7 @@ sha256, installs it under `~/.local/share/kotlin-lsp/<version>`, links
 | `skills/`  | Skill packages (Agent Skills format, one dir each) |
 | `Dockerfile` | Builds the Oh My Pi sandbox image (published to `ghcr.io/janvanrensbergen/omp-sandbox`) |
 | `kit-omp/spec.yaml` | Canonical OMP sbx kit spec (schemaVersion 2; zipped & published to `ghcr.io/janvanrensbergen/omp-kit`) |
+| `kit-anthropic/spec.yaml`, `kit-openrouter/spec.yaml`, `kit-copilot/spec.yaml` | Model-provider mixin kits (egress + proxy-managed API key; published to `ghcr.io/janvanrensbergen/{anthropic,openrouter,copilot}-kit`) |
 | `kit-kotlin-lsp/spec.yaml` | Kotlin LSP mixin kit for the OMP sandbox (published to `ghcr.io/janvanrensbergen/kotlin-lsp-kit`) |
 | `omp/config.yml` | Oh My Pi runtime resource-path configuration |
 | `docs/` | Reference notes (e.g. GitHub Copilot model pricing) |

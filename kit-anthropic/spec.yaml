@@ -1,0 +1,21 @@
+schemaVersion: "2"
+kind: mixin
+name: anthropic
+displayName: Anthropic
+description: "Anthropic API access for the OMP sandbox: egress and proxy-managed ANTHROPIC_API_KEY"
+
+permissions:
+  network:
+    allow:
+      - api.anthropic.com
+      - platform.claude.com
+
+credentials:
+  - service: anthropic
+    apiKey:
+      name: ANTHROPIC_API_KEY
+      proxyManaged: true
+      inject:
+        - domain: api.anthropic.com
+          header: x-api-key
+          format: '%s'

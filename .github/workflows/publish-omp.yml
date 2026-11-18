@@ -11,6 +11,9 @@ on:
       - .github/workflows/publish-omp.yml
       - kit-omp/**
       - kit-kotlin-lsp/**
+      - kit-anthropic/**
+      - kit-openrouter/**
+      - kit-copilot/**
       - skills/**
       - themes/**
       - prompts/**
@@ -29,6 +32,9 @@ jobs:
       image: ${{ steps.filter.outputs.image }}
       kit_omp: ${{ steps.filter.outputs.kit_omp }}
       kit_kotlin_lsp: ${{ steps.filter.outputs.kit_kotlin_lsp }}
+      kit_anthropic: ${{ steps.filter.outputs.kit_anthropic }}
+      kit_openrouter: ${{ steps.filter.outputs.kit_openrouter }}
+      kit_copilot: ${{ steps.filter.outputs.kit_copilot }}
     steps:
       - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
@@ -47,6 +53,12 @@ jobs:
               - kit-omp/**
             kit_kotlin_lsp:
               - kit-kotlin-lsp/**
+            kit_anthropic:
+              - kit-anthropic/**
+            kit_openrouter:
+              - kit-openrouter/**
+            kit_copilot:
+              - kit-copilot/**
 
   publish-omp:
     needs: changes
@@ -70,7 +82,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR (Docker)
-        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true'
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.image == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true' || needs.changes.outputs.kit_anthropic == 'true' || needs.changes.outputs.kit_openrouter == 'true' || needs.changes.outputs.kit_copilot == 'true'
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -92,7 +104,7 @@ jobs:
             OMP_VERSION=18.1.15
 
       - name: Install sbx
-        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true'
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true' || needs.changes.outputs.kit_anthropic == 'true' || needs.changes.outputs.kit_openrouter == 'true' || needs.changes.outputs.kit_copilot == 'true'
         run: |
           set -euo pipefail
           archive="${RUNNER_TEMP}/docker-sbx.tar.gz"
@@ -132,3 +144,47 @@ jobs:
           done
           exit 1
 
+      - name: Publish kit-anthropic to GHCR
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_anthropic == 'true'
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if sbx kit push ./kit-anthropic ghcr.io/janvanrensbergen/anthropic-kit:latest; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+              sleep 10
+            fi
+          done
+          exit 1
+
+      - name: Publish kit-openrouter to GHCR
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_openrouter == 'true'
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if sbx kit push ./kit-openrouter ghcr.io/janvanrensbergen/openrouter-kit:latest; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+              sleep 10
+            fi
+          done
+          exit 1
+
+      - name: Publish kit-copilot to GHCR
+        if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_copilot == 'true'
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if sbx kit push ./kit-copilot ghcr.io/janvanrensbergen/copilot-kit:latest; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 6 ]; then
+              echo "GHCR manifest not ready; retrying in 10 seconds (attempt $((attempt + 1))/6)"
+              sleep 10
+            fi
+          done
+          exit 1
