@@ -101,7 +101,7 @@ jobs:
             ${{ env.IMAGE }}:latest
           platforms: linux/amd64,linux/arm64
           build-args: |
-            OMP_VERSION=18.1.15
+            OMP_VERSION=19.0.0
 
       - name: Install sbx
         if: env.FORCE_ALL == 'true' || needs.changes.outputs.kit_omp == 'true' || needs.changes.outputs.kit_kotlin_lsp == 'true' || needs.changes.outputs.kit_anthropic == 'true' || needs.changes.outputs.kit_openrouter == 'true' || needs.changes.outputs.kit_copilot == 'true'

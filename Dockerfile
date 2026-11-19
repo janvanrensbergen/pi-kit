@@ -1,5 +1,5 @@
 FROM docker/sandbox-templates:shell-docker
-ARG OMP_VERSION=18.22.2
+ARG OMP_VERSION=19.0.0
 ARG RTK_VERSION=v0.48.0
 ARG OHMYJEV_VERSION=0.14.0
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
@@ -46,7 +46,7 @@ RUN curl -fsSL https://bun.sh/install | bash \
     && command -v gcx \
     && command -v hunk \
     && command -v ketch \
-    && /home/agent/.bun/bin/bun install -g @oh-my-pi/pi-coding-agent@${OMP_VERSION} \
+    && curl -fsSL https://omp.sh/install | sh -s -- --binary --ref "v${OMP_VERSION}" \
     && rtk init -g --agent pi \
     && omp plugin install github:RockinPaul/pi-blackhole-omp \
     && omp plugin install ohmyjev@${OHMYJEV_VERSION} \
