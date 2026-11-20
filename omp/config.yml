@@ -31,15 +31,18 @@ theme:
   light: light
 
 defaultProvider: github-copilot
-defaultModel: github-copilot/gpt-5.5
+defaultModel: github-copilot/claude-sonnet-5.5:medium
 defaultThinkingLevel: low
 showCacheMissNotices: true
 
 # Route native OMP task subagents through model roles. The bundled generic
 # `task` agent uses @task, and the low-reasoning `sonic` agent uses @smol.
 modelRoles:
-  task: github-copilot/gpt-5.5
-  smol: github-copilot/mai-code-1.1-flash
+  default: github-copilot/claude-sonnet-5.5:medium
+  task: github-copilot/claude-haiku-5.5
+  smol: github-copilot/claude-haiku-5.5
+  advisor: github-copilot/claude-sonnet-5:low
+  slow: github-copilot/claude-opus-4.8:high
   judge: openrouter/~typesafe/jev-latest
 
 thinkingBudget:
@@ -62,7 +65,7 @@ task:
   maxRuntimeMs: 0
   maxEffort: high
   agentModelOverrides:
-    task: github-copilot/gpt-5.5
+    task: github-copilot/claude-haiku-5.5
 
     # Keep Goldfish reviewers on a different model family than the Sonnet drafter.
     egm-comprehension: &egm_goldfish
