@@ -140,6 +140,30 @@ sha256, installs it under `~/.local/share/kotlin-lsp/<version>`, links
 `~/.local/bin/kotlin-lsp`, and writes `~/.omp/agent/lsp.json`. To upgrade, bump
 `VERSION` and both `SHA256` values in `kit-kotlin-lsp/spec.yaml`.
 
+#### Linking subfolder workspaces to the sandbox-root `.omp`
+
+The kit installs `.omp` only in the sandbox's top folder. Herdr workspaces
+for sibling project subfolders (`cd` into `Harmonix/`, `efti/`, ...) run
+`omp` there without their own `.omp`. OMP already inherits `SYSTEM.md`,
+`RULES.md`, `AGENTS.md`, and `skills/` from the nearest ancestor `.omp`, but
+`mcp.json`, `settings.json`, `config.yml`, `commands/`, `rules/`, `prompts/`,
+`instructions/`, `hooks/`, `tools/`, and `extensions/` are only read from
+`<cwd>/.omp` directly, with no ancestor walk.
+
+`bash/omp-link-parent` (installed as `omp-link-parent` on `PATH`) symlinks
+just those entries from `../.omp` into `./.omp`. Run it once per subfolder:
+
+```bash
+cd Harmonix
+omp-link-parent           # fails if ./.omp already exists
+omp-link-parent --force   # replaces colliding entries, backing up real files/dirs as <name>.bak-<timestamp>
+```
+
+`herdr/config.toml` binds `prefix+alt+o` to a popup running the plain command,
+and `prefix+alt+shift+o` to the `--force` variant, both in the focused pane's
+directory. Custom Herdr command keybindings are static, so `--force` needs its
+own binding rather than a runtime argument.
+
 ## What's inside
 
 | Path | Purpose |
@@ -152,6 +176,7 @@ sha256, installs it under `~/.local/share/kotlin-lsp/<version>`, links
 | `omp/config.yml` | Oh My Pi runtime resource-path configuration |
 | `docs/` | Reference notes (e.g. GitHub Copilot model pricing) |
 | `prompts/` `themes/` `extensions/` | Optional resource categories; `extensions/rtk.js` supplies the OMP RTK bash rewrite hook |
+| `bash/omp-link-parent` | Symlinks a subfolder workspace's `.omp` to the sandbox-root `.omp` (see above); bound to `prefix+alt+o` / `prefix+alt+shift+o` (`--force`) in `herdr/config.toml` |
 
 The RTK bash rewrite hook ships as a local OMP extension (`extensions/rtk.js`)
 because RTK v0.48.0 does not yet install `--agent omp` directly.

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+# omp-link-parent: share a parent workspace's .omp project config with the
+# current directory.
+#
+# Context: a Herdr session starts an sbx sandbox in a top folder (where the
+# kit installs .omp), then cd's into sibling workspace subfolders to run omp
+# there. OMP's native provider only inherits SYSTEM.md, RULES.md, AGENTS.md,
+# and skills/ from the nearest ancestor .omp directory; everything else
+# (mcp.json, settings.json, config.yml, commands/, rules/, prompts/,
+# instructions/, hooks/, tools/, extensions/) is only read from <cwd>/.omp
+# directly, with no ancestor walk. This script symlinks just those entries
+# from ../.omp into ./.omp so project config set up once in the top folder
+# applies in every workspace subfolder.
+set -euo pipefail
+
+force=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --force)
+      force=1
+      ;;
+    -h|--help)
+      cat <<'EOF'
+Usage: omp-link-parent [--force]
+
+Symlink the parent directory's .omp project config into ./.omp, for the
+entries OMP does not already inherit from an ancestor .omp (mcp.json,
+.mcp.json, settings.json, config.yml, config.yaml, commands/, rules/,
+prompts/, instructions/, hooks/, tools/, extensions/). SYSTEM.md, RULES.md,
+AGENTS.md, and skills/ already inherit automatically and are left alone.
+
+Requires a .omp directory one level up (../.omp).
+
+--force  Replace an existing ./.omp entry that collides with a parent entry.
+         Without it, a ./.omp directory that already exists is left
+         untouched: the command reports what it would have linked and exits
+         non-zero. A real (non-symlink) file or directory being replaced is
+         backed up alongside it as "<name>.bak-<timestamp>" before the
+         symlink is created; a stale symlink is just replaced.
+EOF
+      exit 0
+      ;;
+    *)
+      echo "omp-link-parent: unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+if [ ! -d ../.omp ]; then
+  echo "omp-link-parent: no .omp directory one level up ($(cd .. && pwd)/.omp); nothing to do." >&2
+  exit 1
+fi
+parent_omp="$(cd ../.omp && pwd)"
+
+if [ -e .omp ] && [ "$force" -ne 1 ]; then
+  echo "omp-link-parent: ./.omp already exists; rerun with --force to replace colliding entries." >&2
+  exit 1
+fi
+
+# Entries OMP's native provider only admits from <cwd>/.omp directly (no
+# ancestor walk). SYSTEM.md, RULES.md, .omp/AGENTS.md, and skills/ already
+# resolve from the nearest ancestor .omp and are deliberately excluded.
+entries=(
+  mcp.json
+  .mcp.json
+  settings.json
+  config.yml
+  config.yaml
+  commands
+  rules
+  prompts
+  instructions
+  hooks
+  tools
+  extensions
+)
+
+mkdir -p .omp
+
+linked=0
+skipped=0
+for entry in "${entries[@]}"; do
+  src="$parent_omp/$entry"
+  dest=".omp/$entry"
+  [ -e "$src" ] || continue
+
+  if [ -L "$dest" ]; then
+    rm -f "$dest"
+  elif [ -e "$dest" ]; then
+    if [ "$force" -ne 1 ]; then
+      echo "omp-link-parent: skip $dest (already exists; use --force to replace)" >&2
+      skipped=$((skipped + 1))
+      continue
+    fi
+    backup="$dest.bak-$(date +%Y%m%d%H%M%S)"
+    mv "$dest" "$backup"
+    echo "omp-link-parent: backed up existing $dest -> $backup" >&2
+  fi
+
+  ln -s "$src" "$dest"
+  echo "omp-link-parent: linked $dest -> $src"
+  linked=$((linked + 1))
+done
+
+if [ "$linked" -eq 0 ]; then
+  if [ "$skipped" -gt 0 ]; then
+    echo "omp-link-parent: nothing linked, $skipped entr$([ "$skipped" -eq 1 ] && echo y || echo ies) skipped; rerun with --force." >&2
+    exit 1
+  fi
+  echo "omp-link-parent: $parent_omp has none of the linkable entries." >&2
+fi

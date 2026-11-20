@@ -34,6 +34,7 @@ ENV SHELL=/bin/bash
 ENV COPILOT_INTEGRATION_ID=copilot-developer-cli
 ENV PATH="/home/agent/.local/bin:/home/agent/.bun/bin:${PATH}"
 COPY --chown=agent:agent bash/bashrc /home/agent/.bashrc
+COPY --chown=agent:agent bash/omp-link-parent /home/agent/.local/bin/omp-link-parent
 COPY --chown=agent:agent rtk/config.toml /home/agent/.config/rtk/config.toml
 COPY --chown=agent:agent herdr/config.toml /home/agent/.config/herdr/config.toml
 COPY --chown=agent:agent omp/gcx/config.yaml /home/agent/.config/gcx/config.yaml

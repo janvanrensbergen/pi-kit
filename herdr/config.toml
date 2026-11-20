@@ -2,3 +2,23 @@ onboarding = false
 
 [terminal]
 default_shell = "/bin/bash"
+
+# Symlink the parent folder's .omp project config into the current
+# workspace's ./.omp (mcp.json, settings.json, config.yml, commands/,
+# rules/, prompts/, instructions/, hooks/, tools/, extensions/). See
+# bash/omp-link-parent. prefix+alt+o fails if ./.omp already exists;
+# prefix+alt+shift+o reruns it with --force (backs up colliding real
+# files/dirs as <name>.bak-<timestamp>, replaces stale symlinks outright).
+[[keys.command]]
+key = "prefix+alt+o"
+type = "popup"
+command = "bash -lc 'omp-link-parent; echo; echo \"[omp-link-parent] press any key to close\"; read -n 1 -s'"
+width = "80%"
+height = "60%"
+
+[[keys.command]]
+key = "prefix+alt+shift+o"
+type = "popup"
+command = "bash -lc 'omp-link-parent --force; echo; echo \"[omp-link-parent --force] press any key to close\"; read -n 1 -s'"
+width = "80%"
+height = "60%"
