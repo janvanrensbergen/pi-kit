@@ -144,14 +144,19 @@ sha256, installs it under `~/.local/share/kotlin-lsp/<version>`, links
 
 The kit installs `.omp` only in the sandbox's top folder. Herdr workspaces
 for sibling project subfolders (`cd` into `Harmonix/`, `efti/`, ...) run
-`omp` there without their own `.omp`. OMP already inherits `SYSTEM.md`,
-`RULES.md`, `AGENTS.md`, and `skills/` from the nearest ancestor `.omp`, but
-`mcp.json`, `settings.json`, `config.yml`, `commands/`, `rules/`, `prompts/`,
-`instructions/`, `hooks/`, `tools/`, and `extensions/` are only read from
-`<cwd>/.omp` directly, with no ancestor walk.
+`omp` there without their own `.omp`. OMP only inherits project config
+(`SYSTEM.md`, `RULES.md`, `AGENTS.md`, `skills/`, `mcp.json`, `config.yml`,
+commands, hooks, tools, extensions, ...) from the *nearest ancestor* `.omp`
+directory when no `.omp` exists at the current directory at all. The moment
+any `.omp` exists at `cwd`, OMP stops walking further up: it does not merge
+a locally-partial `.omp` with the parent's, it just uses what's present
+locally. So symlinking only a subset of entries (say, just `mcp.json`)
+would silently drop the parent's `skills/`, `AGENTS.md`, etc. instead of
+inheriting them.
 
-`bash/omp-link-parent` (installed as `omp-link-parent` on `PATH`) symlinks
-just those entries from `../.omp` into `./.omp`. Run it once per subfolder:
+`bash/omp-link-parent` (installed as `omp-link-parent` on `PATH`) avoids that
+by mirroring every top-level entry of `../.omp` into `./.omp` as a symlink.
+Run it once per subfolder:
 
 ```bash
 cd Harmonix
@@ -176,7 +181,7 @@ own binding rather than a runtime argument.
 | `omp/config.yml` | Oh My Pi runtime resource-path configuration |
 | `docs/` | Reference notes (e.g. GitHub Copilot model pricing) |
 | `prompts/` `themes/` `extensions/` | Optional resource categories; `extensions/rtk.js` supplies the OMP RTK bash rewrite hook |
-| `bash/omp-link-parent` | Symlinks a subfolder workspace's `.omp` to the sandbox-root `.omp` (see above); bound to `prefix+alt+o` / `prefix+alt+shift+o` (`--force`) in `herdr/config.toml` |
+| `bash/omp-link-parent` | Mirrors a subfolder workspace's `.omp` entries from the sandbox-root `.omp` (see above); bound to `prefix+alt+o` / `prefix+alt+shift+o` (`--force`) in `herdr/config.toml` |
 
 The RTK bash rewrite hook ships as a local OMP extension (`extensions/rtk.js`)
 because RTK v0.48.0 does not yet install `--agent omp` directly.

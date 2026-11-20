@@ -5,12 +5,14 @@
 # Context: a Herdr session starts an sbx sandbox in a top folder (where the
 # kit installs .omp), then cd's into sibling workspace subfolders to run omp
 # there. OMP's native provider only inherits SYSTEM.md, RULES.md, AGENTS.md,
-# and skills/ from the nearest ancestor .omp directory; everything else
-# (mcp.json, settings.json, config.yml, commands/, rules/, prompts/,
-# instructions/, hooks/, tools/, extensions/) is only read from <cwd>/.omp
-# directly, with no ancestor walk. This script symlinks just those entries
-# from ../.omp into ./.omp so project config set up once in the top folder
-# applies in every workspace subfolder.
+# and skills/ from the *nearest ancestor* .omp directory when no .omp exists
+# at cwd. The moment any .omp directory exists at cwd, OMP stops walking
+# further up entirely: it does not merge the parent's skills/AGENTS.md/etc
+# with a locally-partial .omp, it just uses what's at cwd. So a partial
+# ./.omp (only mcp.json, say) would silently lose the parent's skills and
+# AGENTS.md instead of inheriting them. This script avoids that by mirroring
+# every top-level entry of ../.omp into ./.omp as a symlink, so ./.omp is a
+# complete view of the parent's project config.
 set -euo pipefail
 
 force=0
@@ -23,11 +25,14 @@ while [ "$#" -gt 0 ]; do
       cat <<'EOF'
 Usage: omp-link-parent [--force]
 
-Symlink the parent directory's .omp project config into ./.omp, for the
-entries OMP does not already inherit from an ancestor .omp (mcp.json,
-.mcp.json, settings.json, config.yml, config.yaml, commands/, rules/,
-prompts/, instructions/, hooks/, tools/, extensions/). SYSTEM.md, RULES.md,
-AGENTS.md, and skills/ already inherit automatically and are left alone.
+Symlink every top-level entry of the parent directory's .omp into ./.omp, so
+this workspace sees the identical project config (skills/, SYSTEM.md,
+RULES.md, AGENTS.md, mcp.json, settings.json, config.yml, commands/, rules/,
+prompts/, instructions/, hooks/, tools/, extensions/, ...). Once any ./.omp
+exists, OMP's project-config discovery stops walking further up the tree, so
+a partial ./.omp would silently lose entries that would otherwise have been
+inherited from the ancestor .omp -- mirror everything instead of picking a
+subset.
 
 Requires a .omp directory one level up (../.omp).
 
@@ -59,32 +64,14 @@ if [ -e .omp ] && [ "$force" -ne 1 ]; then
   exit 1
 fi
 
-# Entries OMP's native provider only admits from <cwd>/.omp directly (no
-# ancestor walk). SYSTEM.md, RULES.md, .omp/AGENTS.md, and skills/ already
-# resolve from the nearest ancestor .omp and are deliberately excluded.
-entries=(
-  mcp.json
-  .mcp.json
-  settings.json
-  config.yml
-  config.yaml
-  commands
-  rules
-  prompts
-  instructions
-  hooks
-  tools
-  extensions
-)
-
 mkdir -p .omp
 
 linked=0
 skipped=0
-for entry in "${entries[@]}"; do
-  src="$parent_omp/$entry"
+shopt -s dotglob nullglob
+for src in "$parent_omp"/*; do
+  entry="$(basename "$src")"
   dest=".omp/$entry"
-  [ -e "$src" ] || continue
 
   if [ -L "$dest" ]; then
     rm -f "$dest"
@@ -103,11 +90,12 @@ for entry in "${entries[@]}"; do
   echo "omp-link-parent: linked $dest -> $src"
   linked=$((linked + 1))
 done
+shopt -u dotglob nullglob
 
 if [ "$linked" -eq 0 ]; then
   if [ "$skipped" -gt 0 ]; then
     echo "omp-link-parent: nothing linked, $skipped entr$([ "$skipped" -eq 1 ] && echo y || echo ies) skipped; rerun with --force." >&2
     exit 1
   fi
-  echo "omp-link-parent: $parent_omp has none of the linkable entries." >&2
+  echo "omp-link-parent: $parent_omp is empty; nothing to link." >&2
 fi

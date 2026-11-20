@@ -3,9 +3,11 @@ onboarding = false
 [terminal]
 default_shell = "/bin/bash"
 
-# Symlink the parent folder's .omp project config into the current
-# workspace's ./.omp (mcp.json, settings.json, config.yml, commands/,
-# rules/, prompts/, instructions/, hooks/, tools/, extensions/). See
+# Mirror every top-level entry of the parent folder's .omp into the current
+# workspace's ./.omp. Once any ./.omp exists, OMP stops walking further up
+# the tree, so a partial ./.omp would silently lose entries (skills/,
+# SYSTEM.md, RULES.md, AGENTS.md, ...) it would otherwise inherit from the
+# ancestor .omp -- mirror everything instead of picking a subset. See
 # bash/omp-link-parent. prefix+alt+o fails if ./.omp already exists;
 # prefix+alt+shift+o reruns it with --force (backs up colliding real
 # files/dirs as <name>.bak-<timestamp>, replaces stale symlinks outright).
