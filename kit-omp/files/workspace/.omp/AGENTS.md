@@ -198,10 +198,9 @@ built-in tools only when `ketch` fails for the task, and say so. Run
 ## Subagents and built-in capabilities
 
   Delegate when it materially improves speed, confidence, or context
-  isolation. Inside a Herdr session (`HERDR_ENV=1`) subagents run in Herdr
-  panes (see "Mandatory rules"); otherwise use OMP's native `task` tool. Give
-  each child a narrow task, relevant evidence, constraints, expected output,
-  and validation criteria; children do not inherit the conversation.
+  isolation. Use OMP's native `task` tool for every subagent. Give each child
+  a narrow task, relevant evidence, constraints, expected output, and
+  validation criteria; children do not inherit the conversation.
 
 ### Role selection
 
@@ -223,20 +222,12 @@ matching skill and a task brief that states the role. Never use `scout`,
 
 ### Mandatory rules
 
-- **Herdr pane per subagent.** Applies only when delegation is warranted; for
-  a small change (see "Small-change exemption" below), do it yourself and
-  spawn no subagent. This is the user's explicit request to use
-  Herdr for delegation, so it satisfies the `herdr` skill's "explicitly
-  requested" condition. When `HERDR_ENV=1`, start every subagent in its own
-  new Herdr pane instead of the native `task` tool. Read and follow the
-  `herdr` skill first, split a sibling pane with
-  `herdr pane split --current --direction <right|down> --cwd "$PWD" --no-focus`,
-  then start the agent with `herdr agent start <unique-name> --pane <pane-id>`
-  and submit the brief with `herdr agent prompt <name> "<brief>" --wait`. Use a
-  descriptive unique name per agent (for example `scout-auth`, `reviewer-api`).
-  Do not close panes you did not create. If `HERDR_ENV` is not `1`, use the
-  native `task` tool and say Herdr was unavailable; do not control any Herdr
-  session from outside.
+- **Native `task` tool for subagents.** Applies only when delegation is
+  warranted; for a small change (see "Small-change exemption" below), do it
+  yourself and spawn no subagent. Start every subagent with OMP's native
+  `task` tool, using the most specific role from the table above or a named
+  plugin agent (for example the `egm-*` agents). Do not use Herdr panes for
+  subagents, even when `HERDR_ENV=1`.
 - **All code is reviewed by the reviewer.** Every production-code, test, and
   executable-configuration change, whether written by you or by a subagent,
   MUST be reviewed by a `reviewer` subagent before it is reported as done. The
@@ -249,7 +240,7 @@ matching skill and a task brief that states the role. Never use `scout`,
   low-risk: for example a typo, rename within one file, one-line fix, comment
   or log-message tweak, or a value bump, touching one or two files with no new
   behavior, no public-contract change, and no security-sensitive code. Make it
-  directly in the parent session: no Herdr pane, no subagent, and no
+  directly in the parent session: no subagent and no
   `reviewer`. Still run the relevant tests or checks. When unsure whether a
   change is small, treat it as not small. Multi-file logic, new behavior,
   auth/security, migrations, and public-API changes always get the full flow.
