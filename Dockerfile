@@ -2,6 +2,8 @@ FROM docker/sandbox-templates:shell-docker
 ARG OMP_VERSION=19.0.0
 ARG RTK_VERSION=v0.48.0
 ARG OHMYJEV_VERSION=0.14.0
+ARG EGM_VERSION=0.1.1
+ARG EGM_COMMIT=70406c4d22cc7ea8299637c2c5b44625c48b3f08
 LABEL org.opencontainers.image.title="Docker Sandbox Template for Oh My Pi"
 LABEL org.opencontainers.image.description="Experimental sandbox environment for Oh My Pi coding agent"
 LABEL org.opencontainers.image.version="${OMP_VERSION}"
@@ -48,6 +50,11 @@ RUN curl -fsSL https://bun.sh/install | bash \
     && command -v ketch \
     && curl -fsSL https://omp.sh/install | sh -s -- --binary --ref "v${OMP_VERSION}" \
     && rtk init -g --agent pi \
+    && omp plugin marketplace add google/elephant-goldfish-model \
+    && git -C /home/agent/.omp/plugins/cache/marketplaces/egm fetch --depth 1 origin "${EGM_COMMIT}" \
+    && git -C /home/agent/.omp/plugins/cache/marketplaces/egm checkout --detach "${EGM_COMMIT}" \
+    && test "$(bun -e 'console.log(require(process.env.HOME + "/.omp/plugins/cache/marketplaces/egm/plugin.json").version)')" = "${EGM_VERSION}" \
+    && omp plugin install egm@egm \
     && omp plugin install github:RockinPaul/pi-blackhole-omp \
     && omp plugin install ohmyjev@${OHMYJEV_VERSION} \
     && omp plugin config set ohmyjev writeGate false

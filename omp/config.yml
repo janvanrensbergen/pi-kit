@@ -55,6 +55,7 @@ compaction:
 
 # OMP-native subagents are configured under task.*.
 task:
+  showResolvedModelBadge: true
   batch: true
   maxConcurrency: 32
   maxRecursionDepth: 2
@@ -62,6 +63,22 @@ task:
   maxEffort: high
   agentModelOverrides:
     task: github-copilot/gpt-5.5
+
+    # Keep Goldfish reviewers on a different model family than the Sonnet drafter.
+    egm-comprehension: &egm_goldfish
+      - github-copilot/gpt-5.6-sol:low
+      - github-copilot/claude-sonnet-5:low
+      - github-copilot/gpt-5-mini:low
+      - openrouter/z-ai/glm-5.3:low
+      - openrouter/anthropic/claude-sonnet-5:low
+    egm-codebase-details: *egm_goldfish
+    egm-design: *egm_goldfish
+    egm-implementation-readiness: *egm_goldfish
+    egm-inventive-catalyst: *egm_goldfish
+    egm-structural: *egm_goldfish
+    egm-style: *egm_goldfish
+    egm-synthesizer: *egm_goldfish
+    egm-zoom-out: *egm_goldfish
 
 # Enable OMP's local memory summary backend. Other native choices include
 # `mnemopi`, `hindsight`, and `sharpshooter` when their backing services or
